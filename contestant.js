@@ -1,5 +1,3 @@
-// TODO sort contestant list
-
 Array.from(document.getElementsByTagName('select')).forEach(select => {
 	if (!['contestant-insert-team', 'contestant-update-team'].includes(select.id))
 		return;

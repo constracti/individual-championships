@@ -1,4 +1,17 @@
+const VERSION = '0.1';
+
+
 class Team {
+
+	/**
+	 * @type {string}
+	 */
+	name;
+
+	/**
+	 * @type {Organization}
+	 */
+	organization;
 
 	/**
 	 * @param {string} name
@@ -96,6 +109,21 @@ class Team {
 class Contestant {
 
 	/**
+	 * @type {string}
+	 */
+	name;
+
+	/**
+	 * @type {?Team}
+	 */
+	team;
+
+	/**
+	 * @type {Organization}
+	 */
+	organization;
+
+	/**
 	 * @param {string} name
 	 * @param {?Team} team
 	 * @param {Organization} organization
@@ -136,8 +164,101 @@ class Contestant {
 }
 
 
+class Championship {
+
+	/**
+	 * @type {string}
+	 */
+	name;
+
+	/**
+	 * @type {Round[]}
+	 */
+	roundList = [];
+
+	/**
+	 * @type {Organization}
+	 */
+	organization;
+
+	/**
+	 * @param {string} name
+	 * @param {Organization} organization
+	 */
+	constructor(name, organization) {
+		this.name = name;
+		this.organization = organization;
+	}
+
+	/**
+	 * @returns {?number}
+	 */
+	search() {
+		for (let i = 0; i < this.organization.championshipList.length; i++)
+			if (this.organization.championshipList[i] === this)
+				return i;
+		return null;
+	}
+
+	/**
+	 * @param {string} name
+	 */
+	update(name) {
+		this.name = name;
+		this.organization.saveToLocalStorage();
+	}
+
+	delete() {
+		const index = this.search();
+		if (index === null)
+			throw 'Champioship::delete: championship not found';
+		this.organization.championshipList.splice(index, 1);
+		this.organization.saveToLocalStorage();
+	}
+}
+
+
+class Round {
+
+	/**
+	 * @type {Number}
+	 */
+	index;
+
+	/**
+	 * @type {Contestant[]}
+	 */
+	contestantList = [];
+
+	/**
+	 * @type {Game[]}
+	 */
+	gameList = [];
+
+	/**
+	 * @type {Championship}
+	 */
+	championship;
+
+	/**
+	 * @param {Number} index
+	 * @param {Championship} championship
+	 */
+	constructor(index, championship) {
+		this.index = index;
+		this.championship = championship;
+	}
+}
+
+
+class Game {}
+
+
 class Organization {
 
+	/**
+	 * @type {string}
+	 */
 	static key = 'individual-championships';
 
 	/**
@@ -151,6 +272,11 @@ class Organization {
 	contestantList = [];
 
 	/**
+	 * @type {Championship[]}
+	 */
+	championshipList = [];
+
+	/**
 	 * @type {string}
 	 */
 	contestantGroupBy = 'unified';
@@ -159,6 +285,11 @@ class Organization {
 	 * @type {string}
 	 */
 	contestantSortBy = 'index';
+
+	/**
+	 * @type {string}
+	 */
+	version = '0.1';
 
 	constructor() {}
 
@@ -180,8 +311,13 @@ class Organization {
 				organization.getTeam(contestant.team),
 				organization,
 			));
+			organization.championshipList = obj.championshipList.map(championship => new Championship(
+				championship.name,
+				organization,
+			));
 			organization.contestantGroupBy = obj.contestantGroupBy;
 			organization.contestantSortBy = obj.contestantSortBy;
+			organization.version = obj.version;
 		}
 		return organization;
 	}
@@ -199,8 +335,12 @@ class Organization {
 				name: contestant.name,
 				team: contestant.team?.search() ?? null,
 			})),
+			championshipList: this.championshipList.map(championship => ({
+				name: championship.name,
+			})),
 			contestantGroupBy: this.contestantGroupBy,
 			contestantSortBy: this.contestantSortBy,
+			version: this.version,
 		};
 		const json = JSON.stringify(obj);
 		return json;
@@ -271,7 +411,7 @@ class Organization {
 	}
 
 	/**
-	 * @param {string} groupby 
+	 * @param {string} groupby
 	 */
 	setContestantGroupBy(groupby) {
 		this.contestantGroupBy = groupby;
@@ -283,6 +423,30 @@ class Organization {
 	 */
 	setContestantSortBy(sortby) {
 		this.contestantSortBy = sortby;
+		this.saveToLocalStorage();
+	}
+
+	/**
+	 * @param {number|string|null} index
+	 * @returns {?Championship}
+	 */
+	getChampionship(index) {
+		if (index === null || index === '')
+			return null;
+		if (typeof(index) === 'string')
+			index = parseInt(index);
+		if (index >= 0 && index < this.championshipList.length)
+			return this.championshipList[index];
+		throw 'Organization::getChampionship: invalid index';
+	}
+
+	/**
+	 * @param {string} name
+	 * @returns {Team}
+	 */
+	appendChampionship(name) {
+		const championship = new Championship(name, this);
+		this.championshipList.push(championship);
 		this.saveToLocalStorage();
 	}
 }

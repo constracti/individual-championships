@@ -18,8 +18,21 @@ function refresh() {
 	});
 	if (organization.contestantList.length === 0)
 		contestantListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
+	// TODO sort contestant list
 	organization.contestantList.forEach(contestant => {
 		contestantListNode.appendChild(elem({klass: 'list-group-item', content: contestant.name}));
+	});
+
+	// championship list
+	const championshipListNode = document.getElementById('championship-list');
+	Array.from(championshipListNode.children).forEach(championshipNode => {
+		championshipNode.remove();
+	});
+	if (organization.championshipList.length === 0)
+		championshipListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
+	// TODO implement custom toSorted in common script
+	organization.championshipList.forEach(championship => {
+		championshipListNode.appendChild(elem({klass: 'list-group-item', content: championship.name}));
 	});
 
 	// export modal

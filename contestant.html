@@ -12,19 +12,23 @@
 			<h1 class="m-2">Διαγωνιζόμενοι</h1>
 			<a href="index.html" class="m-2">Αρχική</a>
 		</div>
-		<div class="input-group m-2">
-			<label for="contestant-groupby" class="input-group-text">Ομαδοποίηση</label>
-			<select id="contestant-groupby" class="form-select">
-				<option value="unified">Ενιαία</option>
-				<option value="teamwise">Κατά Ομάδες</option>
-			</select>
+		<div class="m-2">
+			<div class="input-group">
+				<label for="contestant-groupby" class="input-group-text">Ομαδοποίηση</label>
+				<select id="contestant-groupby" class="form-select">
+					<option value="unified">Ενιαία</option>
+					<option value="teamwise">Κατά Ομάδες</option>
+				</select>
+			</div>
 		</div>
-		<div class="input-group m-2">
-			<label for="contestant-sortby" class="input-group-text">Ταξινόμηση</label>
-			<select id="contestant-sortby" class="form-select">
-				<option value="index">Σειριακά</option>
-				<option value="name">Αλφαβητικά</option>
-			</select>
+		<div class="m-2">
+			<div class="input-group">
+				<label for="contestant-sortby" class="input-group-text">Ταξινόμηση</label>
+				<select id="contestant-sortby" class="form-select">
+					<option value="index">Σειριακά</option>
+					<option value="name">Αλφαβητικά</option>
+				</select>
+			</div>
 		</div>
 		<div class="d-flex flex-row">
 			<a href="#contestant-insert-form" class="btn btn-success m-2" data-bs-toggle="modal">Προσθήκη</a>
@@ -85,7 +89,7 @@
 						<h5 class="modal-title m-2">Διαγραφή Διαγωνιζόμενου</h5>
 					</div>
 					<div class="modal-body p-2">
-                        <div class="m-2">Να διαγραφεί ο διαγωνιζόμενος «<span id="contestant-delete-name"></span>»;</div>
+						<div class="m-2">Να διαγραφεί ο διαγωνιζόμενος «<span id="contestant-delete-name"></span>»;</div>
 					</div>
 					<div class="modal-footer d-flex flex-row justify-content-end p-2">
 						<button type="submit" class="btn btn-danger m-2">Διαγραφή</button>
@@ -97,6 +101,6 @@
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
 		<script src="color-scheme.js"></script>
 		<script src="common.js"></script>
-        <script src="contestant.js"></script>
+		<script src="contestant.js"></script>
 	</body>
 </html>
