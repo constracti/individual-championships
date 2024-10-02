@@ -423,6 +423,34 @@ class Organization {
 	}
 
 	/**
+	 * @param {Contestant} contestant1
+	 * @param {Contestant} contestant2
+	 * @returns {number}
+	 */
+	compareContestantPair(contestant1, contestant2) {
+		if (this.contestantGroupBy === 'teamwise') {
+			const team1 = contestant1.team?.index ?? -1;
+			const team2 = contestant2.team?.index ?? -1;
+			const cmp = team1 - team2;
+			if (cmp)
+				return cmp;
+		}
+		if (this.contestantSortBy === 'name') {
+			const cmp = contestant1.name.localeCompare(contestant2.name);
+			if (cmp)
+				return cmp;
+		}
+		return 0;
+	}
+
+	/**
+	 * @returns {Contestant[]}
+	 */
+	sortedContestantList() {
+		return this.contestantList.toSorted(this.compareContestantPair.bind(this));
+	}
+
+	/**
 	 * @param {number|string|null} index
 	 * @returns {?Championship}
 	 */
@@ -444,6 +472,22 @@ class Organization {
 		const championship = new Championship(this.championshipList.length, name, this);
 		this.championshipList.push(championship);
 		this.saveToLocalStorage();
+	}
+
+	/**
+	 * @param {Championship} championship1
+	 * @param {Championship} championship2
+	 * @returns {number}
+	 */
+	compareChampionshipPair(championship1, championship2) {
+		return championship1.name.localeCompare(championship2.name);
+	}
+
+	/**
+	 * @returns {Championship[]}
+	 */
+	sortedChampionshipList() {
+		return this.championshipList.toSorted(this.compareChampionshipPair.bind(this));
 	}
 }
 

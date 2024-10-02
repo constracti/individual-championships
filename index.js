@@ -18,8 +18,7 @@ function refresh() {
 	});
 	if (organization.contestantList.length === 0)
 		contestantListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
-	// TODO sort contestant list
-	organization.contestantList.forEach(contestant => {
+	organization.sortedContestantList().forEach(contestant => {
 		contestantListNode.appendChild(elem({klass: 'list-group-item', content: contestant.name}));
 	});
 
@@ -30,8 +29,7 @@ function refresh() {
 	});
 	if (organization.championshipList.length === 0)
 		championshipListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
-	// TODO implement custom toSorted in common script
-	organization.championshipList.forEach(championship => {
+	organization.sortedChampionshipList().forEach(championship => {
 		championshipListNode.appendChild(elem({klass: 'list-group-item', content: championship.name}));
 	});
 

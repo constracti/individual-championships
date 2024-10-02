@@ -26,21 +26,7 @@ function refresh() {
 	});
 	if (organization.contestantList.length === 0)
 		contestantListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
-	organization.contestantList.toSorted((contestant1, contestant2) => {
-		if (organization.contestantGroupBy === 'teamwise') {
-			const team1 = contestant1.team?.index ?? -1;
-			const team2 = contestant2.team?.index ?? -1;
-			const cmp = team1 - team2;
-			if (cmp)
-				return cmp;
-		}
-		if (organization.contestantSortBy === 'name') {
-			const cmp = contestant1.name.localeCompare(contestant2.name);
-			if (cmp)
-				return cmp;
-		}
-		return 0;
-	}).forEach(contestant => {
+	organization.sortedContestantList().forEach(contestant => {
 		contestantListNode.appendChild(elem({
 			klass: 'list-group-item d-flex flex-row justify-content-between p-1',
 			content: [

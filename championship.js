@@ -5,9 +5,7 @@ function refresh() {
 	});
 	if (organization.championshipList.length === 0)
 		championshipListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
-	organization.championshipList.toSorted((championship1, championship2) => {
-		return championship1.name.localeCompare(championship2.name);
-	}).forEach(championship => {
+	organization.sortedChampionshipList().forEach(championship => {
 		championshipListNode.appendChild(elem({
 			klass: 'list-group-item d-flex flex-row justify-content-between p-1',
 			content: [
