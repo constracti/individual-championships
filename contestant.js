@@ -2,8 +2,8 @@ Array.from(document.getElementsByTagName('select')).forEach(select => {
 	if (!['contestant-insert-team', 'contestant-update-team'].includes(select.id))
 		return;
 	select.appendChild(elem({tag: 'option', value: '', content: textDict.nullOption}));
-	organization.teamList.forEach((team, index) => {
-		select.appendChild(elem({tag: 'option', value: index, content: team.getTitle()}));
+	organization.teamList.forEach(team => {
+		select.appendChild(elem({tag: 'option', value: team.index, content: team.getTitle()}));
 	});
 });
 
@@ -28,8 +28,8 @@ function refresh() {
 		contestantListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
 	organization.contestantList.toSorted((contestant1, contestant2) => {
 		if (organization.contestantGroupBy === 'teamwise') {
-			const team1 = contestant1.team?.search() ?? -1;
-			const team2 = contestant2.team?.search() ?? -1;
+			const team1 = contestant1.team?.index ?? -1;
+			const team2 = contestant2.team?.index ?? -1;
 			const cmp = team1 - team2;
 			if (cmp)
 				return cmp;
@@ -56,9 +56,9 @@ function refresh() {
 							click: () => {
 								const form = document.getElementById('contestant-update-form');
 								const modal = bootstrap.Modal.getOrCreateInstance(form);
-								document.getElementById('contestant-update-index').value = contestant.search();
+								document.getElementById('contestant-update-index').value = contestant.index;
 								document.getElementById('contestant-update-name').value = contestant.name;
-								document.getElementById('contestant-update-team').value = contestant.team?.search() ?? '';
+								document.getElementById('contestant-update-team').value = contestant.team?.index ?? '';
 								modal.show();
 							},
 						}),
@@ -67,7 +67,7 @@ function refresh() {
 							click: () => {
 								const form = document.getElementById('contestant-delete-form');
 								const modal = bootstrap.Modal.getOrCreateInstance(form);
-								document.getElementById('contestant-delete-index').value = contestant.search();
+								document.getElementById('contestant-delete-index').value = contestant.index;
 								document.getElementById('contestant-delete-name').innerHTML = contestant.name;
 								modal.show();
 							},

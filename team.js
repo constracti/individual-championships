@@ -5,7 +5,7 @@ function refresh() {
 	});
 	if (organization.teamList.length === 0)
 		teamListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
-	organization.teamList.forEach((team, index) => {
+	organization.teamList.forEach(team => {
 		teamListNode.appendChild(elem({
 			klass: 'list-group-item d-flex flex-row justify-content-between p-1',
 			content: [
@@ -18,7 +18,7 @@ function refresh() {
 							click: () => {
 								const form = document.getElementById('team-update-form');
 								const modal = bootstrap.Modal.getOrCreateInstance(form);
-								document.getElementById('team-update-index').value = index;
+								document.getElementById('team-update-index').value = team.index;
 								document.getElementById('team-update-name').value = team.name;
 								modal.show();
 							},
@@ -38,7 +38,7 @@ function refresh() {
 							click: () => {
 								const form = document.getElementById('team-delete-form');
 								const modal = bootstrap.Modal.getOrCreateInstance(form);
-								document.getElementById('team-delete-index').value = index;
+								document.getElementById('team-delete-index').value = team.index;
 								document.getElementById('team-delete-name').innerHTML = team.name;
 								modal.show();
 							},

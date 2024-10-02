@@ -4,6 +4,11 @@ const VERSION = '0.1';
 class Team {
 
 	/**
+	 * @type {number}
+	 */
+	index;
+
+	/**
 	 * @type {string}
 	 */
 	name;
@@ -14,22 +19,14 @@ class Team {
 	organization;
 
 	/**
+	 * @param {number} index
 	 * @param {string} name
 	 * @param {Organization} organization
 	 */
-	constructor(name, organization) {
+	constructor(index, name, organization) {
+		this.index = index;
 		this.name = name;
 		this.organization = organization;
-	}
-
-	/**
-	 * @returns {?number}
-	 */
-	search() {
-		for (let i = 0; i < this.organization.teamList.length; i++)
-			if (this.organization.teamList[i] === this)
-				return i;
-		return null;
 	}
 
 	/**
@@ -41,32 +38,36 @@ class Team {
 	}
 
 	moveUp() {
-		const index = this.search();
-		if (index === null)
-			throw 'Team::moveUp: team not found';
+		const index = this.index;
 		if (index === 0)
 			throw 'Team::moveUp: team is first';
-		this.organization.teamList[index] = this.organization.teamList[index - 1];
+		const other = this.organization.teamList[index - 1];
+		other.index = index;
+		this.index = index - 1;
+		this.organization.teamList[index] = other;
 		this.organization.teamList[index - 1] = this;
 		this.organization.saveToLocalStorage();
 	}
 
 	moveDown() {
-		const index = this.search();
-		if (index === null)
-			throw 'Team::moveDown: team not found';
+		const index = this.index;
 		if (index === this.organization.teamList.length - 1)
 			throw 'Team::moveDown: team is last';
-		this.organization.teamList[index] = this.organization.teamList[index + 1];
+		const other = this.organization.teamList[index + 1];
+		other.index = index;
+		this.index = index + 1;
+		this.organization.teamList[index] = other;
 		this.organization.teamList[index + 1] = this;
 		this.organization.saveToLocalStorage();
 	}
 
 	delete() {
-		const index = this.search();
-		if (index === null)
-			throw 'Team::delete: team not found';
+		let index = this.index;
 		this.organization.teamList.splice(index, 1);
+		while (index < this.organization.teamList.length) {
+			this.organization.teamList[index].index--;
+			index++;
+		}
 		this.organization.contestantList
 			.filter(contestant => contestant.team === this)
 			.forEach(contestant => contestant.team = null);
@@ -77,20 +78,14 @@ class Team {
 	 * @returns boolean
 	 */
 	isFirst() {
-		const index = this.search();
-		if (index === null)
-			throw 'Team::isFirst: team not found';
-		return index === 0;
+		return this.index === 0;
 	}
 
 	/**
 	 * @returns boolean
 	 */
 	isLast() {
-		const index = this.search();
-		if (index === null)
-			throw 'Team::isLast: team not found';
-		return index === this.organization.teamList.length - 1;
+		return this.index === this.organization.teamList.length - 1;
 	}
 
 	/**
@@ -98,15 +93,17 @@ class Team {
 	 * @returns {string}
 	 */
 	getTitle() {
-		const index = this.search();
-		if (index === null)
-			throw 'Team::getTitle: team not found';
-		return `${index + 1}. ${this.name}`;
+		return `${this.index + 1}. ${this.name}`;
 	}
 }
 
 
 class Contestant {
+
+	/**
+	 * @type {number}
+	 */
+	index;
 
 	/**
 	 * @type {string}
@@ -124,24 +121,16 @@ class Contestant {
 	organization;
 
 	/**
+	 * @param {number} index
 	 * @param {string} name
 	 * @param {?Team} team
 	 * @param {Organization} organization
 	 */
-	constructor(name, team, organization) {
+	constructor(index, name, team, organization) {
+		this.index = index;
 		this.name = name;
 		this.team = team;
 		this.organization = organization;
-	}
-
-	/**
-	 * @returns {?number}
-	 */
-	search() {
-		for (let i = 0; i < this.organization.contestantList.length; i++)
-			if (this.organization.contestantList[i] === this)
-				return i;
-		return null;
 	}
 
 	/**
@@ -155,16 +144,23 @@ class Contestant {
 	}
 
 	delete() {
-		const index = this.search();
-		if (index === null)
-			throw 'Contestant::delete: contestant not found';
+		let index = this.index;
 		this.organization.contestantList.splice(index, 1);
+		while (index < this.organization.contestantList.length) {
+			this.organization.contestantList[index].index--;
+			index++;
+		}
 		this.organization.saveToLocalStorage();
 	}
 }
 
 
 class Championship {
+
+	/**
+	 * @type {number}
+	 */
+	index;
 
 	/**
 	 * @type {string}
@@ -182,22 +178,14 @@ class Championship {
 	organization;
 
 	/**
+	 * @param {number} index
 	 * @param {string} name
 	 * @param {Organization} organization
 	 */
-	constructor(name, organization) {
+	constructor(index, name, organization) {
+		this.index = index;
 		this.name = name;
 		this.organization = organization;
-	}
-
-	/**
-	 * @returns {?number}
-	 */
-	search() {
-		for (let i = 0; i < this.organization.championshipList.length; i++)
-			if (this.organization.championshipList[i] === this)
-				return i;
-		return null;
 	}
 
 	/**
@@ -209,10 +197,12 @@ class Championship {
 	}
 
 	delete() {
-		const index = this.search();
-		if (index === null)
-			throw 'Champioship::delete: championship not found';
+		let index = this.index;
 		this.organization.championshipList.splice(index, 1);
+		while (index < this.organization.championshipList.length) {
+			this.organization.championshipList[index]--;
+			index++;
+		}
 		this.organization.saveToLocalStorage();
 	}
 }
@@ -303,15 +293,18 @@ class Organization {
 		if (json !== null) {
 			const obj = JSON.parse(json);
 			organization.teamList = obj.teamList.map(team => new Team(
+				team.index,
 				team.name,
 				organization,
 			));
 			organization.contestantList = obj.contestantList.map(contestant => new Contestant(
+				contestant.index,
 				contestant.name,
 				organization.getTeam(contestant.team),
 				organization,
 			));
 			organization.championshipList = obj.championshipList.map(championship => new Championship(
+				championship.index,
 				championship.name,
 				organization,
 			));
@@ -329,13 +322,16 @@ class Organization {
 	toJSON() {
 		const obj = {
 			teamList: this.teamList.map(team => ({
+				index: team.index,
 				name: team.name,
 			})),
 			contestantList: this.contestantList.map(contestant => ({
+				index: contestant.index,
 				name: contestant.name,
-				team: contestant.team?.search() ?? null,
+				team: contestant.team?.index ?? null,
 			})),
 			championshipList: this.championshipList.map(championship => ({
+				index: championship.index,
 				name: championship.name,
 			})),
 			contestantGroupBy: this.contestantGroupBy,
@@ -380,7 +376,7 @@ class Organization {
 	 * @returns {Team}
 	 */
 	appendTeam(name) {
-		const team = new Team(name, this);
+		const team = new Team(this.teamList.length, name, this);
 		this.teamList.push(team);
 		this.saveToLocalStorage();
 	}
@@ -405,7 +401,7 @@ class Organization {
 	 * @returns {Contestant}
 	 */
 	appendContestant(name, team) {
-		const contestant = new Contestant(name, team, this);
+		const contestant = new Contestant(this.contestantList.length, name, team, this);
 		this.contestantList.push(contestant);
 		this.saveToLocalStorage();
 	}
@@ -445,7 +441,7 @@ class Organization {
 	 * @returns {Team}
 	 */
 	appendChampionship(name) {
-		const championship = new Championship(name, this);
+		const championship = new Championship(this.championshipList.length, name, this);
 		this.championshipList.push(championship);
 		this.saveToLocalStorage();
 	}
@@ -552,3 +548,7 @@ const textDict = {
 let organization = Organization.loadFromLocalStorage();
 
 // TODO check if "database" is "dirty" from another tab
+// TODO undo and redo functionality
+// TODO display app version in the import modal
+// TODO allow missing fields in object parsing
+// TODO document json objects

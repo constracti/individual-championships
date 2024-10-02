@@ -20,7 +20,7 @@ function refresh() {
 							click: () => {
 								const form = document.getElementById('championship-update-form');
 								const modal = bootstrap.Modal.getOrCreateInstance(form);
-								document.getElementById('championship-update-index').value = championship.search();
+								document.getElementById('championship-update-index').value = championship.index;
 								document.getElementById('championship-update-name').value = championship.name;
 								modal.show();
 							},
@@ -30,7 +30,7 @@ function refresh() {
 							click: () => {
 								const form = document.getElementById('championship-delete-form');
 								const modal = bootstrap.Modal.getOrCreateInstance(form);
-								document.getElementById('championship-delete-index').value = championship.search();
+								document.getElementById('championship-delete-index').value = championship.index;
 								document.getElementById('championship-delete-name').innerHTML = championship.name;
 								modal.show();
 							},
