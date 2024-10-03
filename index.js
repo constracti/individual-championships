@@ -30,11 +30,11 @@ function refresh() {
 	if (organization.championshipList.length === 0)
 		championshipListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
 	organization.sortedChampionshipList().forEach(championship => {
-		championshipListNode.appendChild(elem({klass: 'list-group-item', content: championship.name}));
+		championshipListNode.appendChild(elem({tag: 'a', klass: 'list-group-item list-group-item-action', href: `view.html?championship=${championship.index}`, content: championship.name}));
 	});
 
 	// export modal
-	document.getElementById('export-textarea').value = organization.toJSON();
+	document.getElementById('export-textarea').value = organization.toJSON(true);
 
 }
 

@@ -38,10 +38,9 @@ class Team {
 	/**
 	 * @param {TeamObj} obj
 	 * @param {Organization} organization
-	 * @returns {Team}
 	 */
 	static parse(obj, organization) {
-		return new Team(obj.index, obj.name, organization);
+		organization.appendTeam(obj.name, false);
 	}
 
 	/**
@@ -168,10 +167,9 @@ class Contestant {
 	/**
 	 * @param {ContestantObj} obj
 	 * @param {Organization} organization
-	 * @returns {Contestant}
 	 */
 	static parse(obj, organization) {
-		return new Contestant(obj.index, obj.name, organization.getTeam(obj.team), organization);
+		organization.appendContestant(obj.name, organization.getTeam(obj.team), false);
 	}
 
 	/**
@@ -209,8 +207,8 @@ class Contestant {
 
 /**
  * @typedef {Object} ChampionshipObj
- * @property {number} index
  * @property {string} name
+ * @property {RoundObj[]} roundList
  */
 
 class Championship {
@@ -249,10 +247,12 @@ class Championship {
 	/**
 	 * @param {ChampionshipObj} obj
 	 * @param {Organization} organization
-	 * @returns {Championship}
 	 */
 	static parse(obj, organization) {
-		return new Championship(obj.index, obj.name, organization);
+		const championship = organization.appendChampionship(obj.name, false);
+		obj.roundList.forEach(round => {
+			championship.appendRound();
+		});
 	}
 
 	/**
@@ -260,8 +260,8 @@ class Championship {
 	 */
 	build() {
 		return {
-			index: this.index,
 			name: this.name,
+			roundList: this.roundList.map(round => round.build()),
 		};
 	}
 
@@ -282,8 +282,21 @@ class Championship {
 		}
 		this.organization.saveToLocalStorage();
 	}
+
+	/**
+	 * @returns {Round}
+	 */
+	appendRound() {
+		const round = new Round(this.roundList.length, this);
+		this.roundList.push(round);
+		return round;
+	}
 }
 
+
+/**
+ * @typedef {Object} RoundObj
+ */
 
 class Round {
 
@@ -314,6 +327,13 @@ class Round {
 	constructor(index, championship) {
 		this.index = index;
 		this.championship = championship;
+	}
+
+	/**
+	 * @returns {RoundObj}
+	 */
+	build() {
+		return {};
 	}
 }
 
@@ -386,11 +406,11 @@ class Organization {
 	 * @param {OrganizationObj} obj
 	 */
 	parse(obj) {
-		this.teamList = obj.teamList.map(team => Team.parse(team, this));
-		this.contestantList = obj.contestantList.map(contestant => Contestant.parse(contestant, this));
-		this.championshipList = obj.championshipList.map(championship => Championship.parse(championship, this));
-		this.contestantGroupBy = obj.contestantGroupBy ?? Organization.CONTESTANT_GROUP_BY;
-		this.contestantSortBy = obj.contestantSortBy ?? Organization.CONTESTANT_SORT_BY;
+		obj.teamList.forEach(team => Team.parse(team, this));
+		obj.contestantList.forEach(contestant => Contestant.parse(contestant, this));
+		obj.championshipList.forEach(championship => Championship.parse(championship, this));
+		this.setContestantGroupBy(obj.contestantGroupBy ?? Organization.CONTESTANT_GROUP_BY, false);
+		this.setContestantSortBy(obj.contestantSortBy ?? Organization.CONTESTANT_SORT_BY, false);
 	}
 
 	/**
@@ -421,10 +441,11 @@ class Organization {
 
 	/**
 	 * Serialize the Organization to a JSON string.
+	 * @param {boolean} [pretty=false]
 	 * @returns {string}
 	 */
-	toJSON() {
-		const json = JSON.stringify(this.build());
+	toJSON(pretty) {
+		const json = JSON.stringify(this.build(), null, (pretty ?? false) ? '\t' : null);
 		return json;
 	}
 
@@ -459,12 +480,13 @@ class Organization {
 
 	/**
 	 * @param {string} name
-	 * @returns {Team}
+	 * @param {boolean} [save=true]
 	 */
-	appendTeam(name) {
+	appendTeam(name, save) {
 		const team = new Team(this.teamList.length, name, this);
 		this.teamList.push(team);
-		this.saveToLocalStorage();
+		if (save ?? true)
+			this.saveToLocalStorage();
 	}
 
 	/**
@@ -484,28 +506,33 @@ class Organization {
 	/**
 	 * @param {string} name
 	 * @param {?Team} team
-	 * @returns {Contestant}
+	 * @param {boolean} [save=true]
 	 */
-	appendContestant(name, team) {
+	appendContestant(name, team, save) {
 		const contestant = new Contestant(this.contestantList.length, name, team, this);
 		this.contestantList.push(contestant);
-		this.saveToLocalStorage();
+		if (save ?? true)
+			this.saveToLocalStorage();
 	}
 
 	/**
 	 * @param {string} groupby
+	 * @param {boolean} [save=true]
 	 */
-	setContestantGroupBy(groupby) {
+	setContestantGroupBy(groupby, save) {
 		this.contestantGroupBy = groupby;
-		this.saveToLocalStorage();
+		if (save ?? true)
+			this.saveToLocalStorage();
 	}
 
 	/**
 	 * @param {string} sortby
+	 * @param {boolean} [save=true]
 	 */
-	setContestantSortBy(sortby) {
+	setContestantSortBy(sortby, save) {
 		this.contestantSortBy = sortby;
-		this.saveToLocalStorage();
+		if (save ?? true)
+			this.saveToLocalStorage();
 	}
 
 	/**
@@ -552,12 +579,15 @@ class Organization {
 
 	/**
 	 * @param {string} name
-	 * @returns {Team}
+	 * @returns {Championship}
+	 * @param {boolean} [save=true]
 	 */
-	appendChampionship(name) {
+	appendChampionship(name, save) {
 		const championship = new Championship(this.championshipList.length, name, this);
 		this.championshipList.push(championship);
-		this.saveToLocalStorage();
+		if (save ?? true)
+			this.saveToLocalStorage();
+		return championship;
 	}
 
 	/**
@@ -583,6 +613,7 @@ class Organization {
  * @param {?string} args.tag
  * @param {?string} args.klass
  * @param {?string} args.value
+ * @param {?string} args.href
  * @param {?(string|HTMLElement[])} args.content
  * @returns {HTMLElement}
  */
@@ -593,6 +624,8 @@ function elem(args) {
 		args.klass = null;
 	if (args.value === undefined)
 		args.value = null;
+	if (args.href === undefined)
+		args.href = null;
 	if (args.content === undefined)
 		args.content = null;
 	const node = document.createElement(args.tag);
@@ -600,6 +633,8 @@ function elem(args) {
 		node.className = args.klass;
 	if (args.value !== null)
 		node.value = args.value;
+	if (args.href !== null)
+		node.href = args.href;
 	if (args.content === null)
 		;
 	else if (typeof(args.content) === 'string')
@@ -671,6 +706,8 @@ Array.from(document.getElementsByClassName('modal')).forEach(modal => {
 });
 
 const textDict = {
+	separator: ' | ',
+	siteName: 'Ατομικά Πρωταθλήματα',
 	emptyList: '(Κενή Λίστα)',
 	nullOption: '(Χωρίς Επιλογή)',
 };
@@ -680,3 +717,4 @@ let organization = Organization.loadFromLocalStorage();
 // TODO check if "database" is "dirty" from another tab
 // TODO undo and redo functionality
 // TODO display app version in the import modal
+// TODO destroy organization contents

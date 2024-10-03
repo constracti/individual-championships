@@ -44,7 +44,8 @@ document.getElementById('championship-insert-form').addEventListener('submit', e
 	event.preventDefault();
 	const form = event.currentTarget;
 	const name = document.getElementById('championship-insert-name').value;
-	organization.appendChampionship(name);
+	const championship = organization.appendChampionship(name);
+	championship.appendRound();
 	const modal = bootstrap.Modal.getInstance(form);
 	modal.hide();
 	form.reset();
