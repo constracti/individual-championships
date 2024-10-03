@@ -1,6 +1,12 @@
 const VERSION = '0.1';
 
 
+/**
+ * @typedef {Object} TeamObj
+ * @property {number} index
+ * @property {string} name
+ */
+
 class Team {
 
 	/**
@@ -27,6 +33,25 @@ class Team {
 		this.index = index;
 		this.name = name;
 		this.organization = organization;
+	}
+
+	/**
+	 * @param {TeamObj} obj
+	 * @param {Organization} organization
+	 * @returns {Team}
+	 */
+	static parse(obj, organization) {
+		return new Team(obj.index, obj.name, organization);
+	}
+
+	/**
+	 * @returns {TeamObj}
+	 */
+	build() {
+		return {
+			index: this.index,
+			name: this.name,
+		};
 	}
 
 	/**
@@ -98,6 +123,13 @@ class Team {
 }
 
 
+/**
+ * @typedef {Object} ContestantObj
+ * @property {number} index
+ * @property {string} name
+ * @property {?number} team
+ */
+
 class Contestant {
 
 	/**
@@ -134,6 +166,26 @@ class Contestant {
 	}
 
 	/**
+	 * @param {ContestantObj} obj
+	 * @param {Organization} organization
+	 * @returns {Contestant}
+	 */
+	static parse(obj, organization) {
+		return new Contestant(obj.index, obj.name, organization.getTeam(obj.team), organization);
+	}
+
+	/**
+	 * @returns {ContestantObj}
+	 */
+	build() {
+		return {
+			index: this.index,
+			name: this.name,
+			team: this.team?.index ?? null,
+		};
+	}
+
+	/**
 	 * @param {string} name
 	 * @param {?Team} team
 	 */
@@ -154,6 +206,12 @@ class Contestant {
 	}
 }
 
+
+/**
+ * @typedef {Object} ChampionshipObj
+ * @property {number} index
+ * @property {string} name
+ */
 
 class Championship {
 
@@ -186,6 +244,25 @@ class Championship {
 		this.index = index;
 		this.name = name;
 		this.organization = organization;
+	}
+
+	/**
+	 * @param {ChampionshipObj} obj
+	 * @param {Organization} organization
+	 * @returns {Championship}
+	 */
+	static parse(obj, organization) {
+		return new Championship(obj.index, obj.name, organization);
+	}
+
+	/**
+	 * @returns {ChampionshipObj}
+	 */
+	build() {
+		return {
+			index: this.index,
+			name: this.name,
+		};
 	}
 
 	/**
@@ -244,6 +321,16 @@ class Round {
 class Game {}
 
 
+/**
+ * @typedef {Object} OrganizationObj
+ * @property {TeamObj[]} teamList
+ * @property {ContestantObj[]} contestantList
+ * @property {ChampionshipObj[]} championshipList
+ * @property {?string} contestantGroupBy
+ * @property {?string} contestantSortBy
+ * @property {?string} version
+ */
+
 class Organization {
 
 	/**
@@ -267,21 +354,58 @@ class Organization {
 	championshipList = [];
 
 	/**
+	 * @constant
 	 * @type {string}
 	 */
-	contestantGroupBy = 'unified';
+	static CONTESTANT_GROUP_BY = 'unified';
 
 	/**
 	 * @type {string}
 	 */
-	contestantSortBy = 'index';
+	contestantGroupBy = Organization.CONTESTANT_GROUP_BY;
+
+	/**
+	 * @constant
+	 * @type {string}
+	 */
+	static CONTESTANT_SORT_BY = 'index';
 
 	/**
 	 * @type {string}
 	 */
-	version = '0.1';
+	contestantSortBy = Organization.CONTESTANT_SORT_BY;
+
+	/**
+	 * @type {string}
+	 */
+	version = VERSION;
 
 	constructor() {}
+
+	/**
+	 * @param {OrganizationObj} obj
+	 */
+	parse(obj) {
+		this.teamList = obj.teamList.map(team => Team.parse(team, this));
+		this.contestantList = obj.contestantList.map(contestant => Contestant.parse(contestant, this));
+		this.championshipList = obj.championshipList.map(championship => Championship.parse(championship, this));
+		this.contestantGroupBy = obj.contestantGroupBy ?? Organization.CONTESTANT_GROUP_BY;
+		this.contestantSortBy = obj.contestantSortBy ?? Organization.CONTESTANT_SORT_BY;
+	}
+
+	/**
+	 * @returns {OrganizationObj}
+	 */
+	build() {
+		return {
+			teamList: this.teamList.map(team => team.build()),
+			contestantList: this.contestantList.map(contestant => contestant.build()),
+			championshipList: this.championshipList.map(championship => championship.build()),
+			contestantGroupBy: this.contestantGroupBy,
+			contestantSortBy: this.contestantSortBy,
+			version: this.version,
+		};
+	}
 
 	/**
 	 * Build an Organization from a JSON string.
@@ -290,28 +414,8 @@ class Organization {
 	 */
 	static fromJSON(json) {
 		const organization = new Organization();
-		if (json !== null) {
-			const obj = JSON.parse(json);
-			organization.teamList = obj.teamList.map(team => new Team(
-				team.index,
-				team.name,
-				organization,
-			));
-			organization.contestantList = obj.contestantList.map(contestant => new Contestant(
-				contestant.index,
-				contestant.name,
-				organization.getTeam(contestant.team),
-				organization,
-			));
-			organization.championshipList = obj.championshipList.map(championship => new Championship(
-				championship.index,
-				championship.name,
-				organization,
-			));
-			organization.contestantGroupBy = obj.contestantGroupBy;
-			organization.contestantSortBy = obj.contestantSortBy;
-			organization.version = obj.version;
-		}
+		if (json !== null)
+			organization.parse(JSON.parse(json));
 		return organization;
 	}
 
@@ -320,25 +424,7 @@ class Organization {
 	 * @returns {string}
 	 */
 	toJSON() {
-		const obj = {
-			teamList: this.teamList.map(team => ({
-				index: team.index,
-				name: team.name,
-			})),
-			contestantList: this.contestantList.map(contestant => ({
-				index: contestant.index,
-				name: contestant.name,
-				team: contestant.team?.index ?? null,
-			})),
-			championshipList: this.championshipList.map(championship => ({
-				index: championship.index,
-				name: championship.name,
-			})),
-			contestantGroupBy: this.contestantGroupBy,
-			contestantSortBy: this.contestantSortBy,
-			version: this.version,
-		};
-		const json = JSON.stringify(obj);
+		const json = JSON.stringify(this.build());
 		return json;
 	}
 
@@ -594,5 +680,3 @@ let organization = Organization.loadFromLocalStorage();
 // TODO check if "database" is "dirty" from another tab
 // TODO undo and redo functionality
 // TODO display app version in the import modal
-// TODO allow missing fields in object parsing
-// TODO document json objects
