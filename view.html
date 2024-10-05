@@ -13,6 +13,30 @@
 			<a href="index.html" class="m-2">Αρχική</a>
 		</div>
 		<div id="round-list" class="d-flex flex-column"></div>
+		<form id="contestant-insert-form" class="modal">
+			<input type="hidden" id="contestant-insert-unit">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header p-2">
+						<h5 class="modal-title m-2">Προσθήκη Διαγωνιζόμενου</h5>
+					</div>
+					<div class="modal-body p-2">
+						<div class="m-2">
+							<label for="contestant-insert-team" class="form-label">Ομάδα</label>
+							<select id="contestant-insert-team" class="form-select"></select>
+						</div>
+						<div class="m-2">
+							<label for="contestant-insert-select" class="form-label">Διαγωνιζόμενος</label>
+							<select id="contestant-insert-select" class="form-select" required="required"></select>
+						</div>
+					</div>
+					<div class="modal-footer d-flex flex-row justify-content-end p-2">
+						<button type="submit" class="btn btn-primary m-2">Υποβολή</button>
+						<button type="button" class="btn btn-secondary m-2" data-bs-dismiss="modal">Άκυρο</button>
+					</div>
+				</div>
+			</div>
+		</form>
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
 		<script src="color-scheme.js"></script>
 		<script src="common.js"></script>

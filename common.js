@@ -250,9 +250,7 @@ class Championship {
 	 */
 	static parse(obj, organization) {
 		const championship = organization.appendChampionship(obj.name, false);
-		obj.roundList.forEach(round => {
-			championship.appendRound();
-		});
+		obj.roundList.forEach(round => Round.parse(round, championship));
 	}
 
 	/**
@@ -286,6 +284,15 @@ class Championship {
 	/**
 	 * @returns {Round}
 	 */
+	getLastRound() {
+		if (this.roundList.length === 0)
+			throw 'Championship::getLastRound: no rounds';
+		return this.roundList[this.roundList.length - 1];
+	}
+
+	/**
+	 * @returns {Round}
+	 */
 	appendRound() {
 		const round = new Round(this.roundList.length, this);
 		this.roundList.push(round);
@@ -296,6 +303,7 @@ class Championship {
 
 /**
  * @typedef {Object} RoundObj
+ * @property {number[][]} unitList
  */
 
 class Round {
@@ -306,9 +314,9 @@ class Round {
 	index;
 
 	/**
-	 * @type {Contestant[]}
+	 * @type {Contestant[][]}
 	 */
-	contestantList = [];
+	unitList = [];
 
 	/**
 	 * @type {Game[]}
@@ -330,10 +338,44 @@ class Round {
 	}
 
 	/**
+	 * @param {RoundObj} obj
+	 * @param {Championship} championship
+	 */
+	static parse(obj, championship) {
+		const round = championship.appendRound();
+		round.unitList = obj.unitList.map(unit => unit.map(index => championship.organization.getContestant(index)));
+	}
+
+	/**
 	 * @returns {RoundObj}
 	 */
 	build() {
-		return {};
+		return {
+			unitList: this.unitList.map(unit => unit.map(contestant => contestant.index)),
+		};
+	}
+
+	/**
+	 * @param {number} index
+	 * @returns {?(Contestant[])}
+	 */
+	getUnit(index) {
+		if (index === null || index === '')
+			return null;
+		if (typeof(index) === 'string')
+			index = parseInt(index);
+		if (index >= 0 && index < this.unitList.length)
+			return this.unitList[index];
+		throw 'Round::getUnit: invalid index';
+	}
+
+	/**
+	 * @returns {Contestant[]}
+	 */
+	appendUnit() {
+		const unit = [];
+		this.unitList.push(unit);
+		return unit;
 	}
 }
 
@@ -614,6 +656,7 @@ class Organization {
  * @param {?string} args.klass
  * @param {?string} args.value
  * @param {?string} args.href
+ * @param {*} args.click
  * @param {?(string|HTMLElement[])} args.content
  * @returns {HTMLElement}
  */
@@ -626,6 +669,8 @@ function elem(args) {
 		args.value = null;
 	if (args.href === undefined)
 		args.href = null;
+	if (args.click === undefined)
+		args.click = null;
 	if (args.content === undefined)
 		args.content = null;
 	const node = document.createElement(args.tag);
@@ -635,6 +680,12 @@ function elem(args) {
 		node.value = args.value;
 	if (args.href !== null)
 		node.href = args.href;
+	if (args.click !== null) {
+		node.addEventListener('click', event => {
+			event.preventDefault();
+			args.click();
+		});
+	}
 	if (args.content === null)
 		;
 	else if (typeof(args.content) === 'string')
@@ -656,6 +707,12 @@ function elem(args) {
  */
 function actionIcon(args) {
 	switch (args.template) {
+		case 'add':
+			if (args.color === undefined)
+				args.color = 'link-success';
+			if (args.icon === undefined)
+				args.icon = 'bi-plus-lg';
+			break;
 		case 'edit':
 			if (args.icon === undefined)
 				args.icon = 'bi-pencil';
@@ -718,3 +775,4 @@ let organization = Organization.loadFromLocalStorage();
 // TODO undo and redo functionality
 // TODO display app version in the import modal
 // TODO destroy organization contents
+// TODO typedef callable () => void
