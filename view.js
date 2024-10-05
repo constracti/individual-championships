@@ -94,6 +94,11 @@ function refresh() {
 						elem({
 							tag: 'button',
 							klass: 'btn btn-secondary m-2',
+							click: () => {
+								round.shuffleUnitList();
+								organization.saveToLocalStorage();
+								refresh();
+							},
 							content: 'Ανάμιξη',
 						}),
 						elem({

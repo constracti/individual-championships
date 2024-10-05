@@ -376,6 +376,17 @@ class Round {
 		this.unitList.push(unit);
 		return unit;
 	}
+
+	shuffleUnitList() {
+		let curr = this.unitList.length;
+		while (curr !== 0) {
+			const rand = Math.floor(Math.random() * curr);
+			curr--;
+			const temp = this.unitList[curr];
+			this.unitList[curr] = this.unitList[rand];
+			this.unitList[rand] = temp;
+		}
+	}
 }
 
 
