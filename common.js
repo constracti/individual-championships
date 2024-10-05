@@ -196,6 +196,13 @@ class Contestant {
 			index++;
 		}
 	}
+
+	/**
+	 * @returns {string}
+	 */
+	getNameWithTeam() {
+		return this.name + (this.team !== null ? ` (${this.team.index + 1}η)` : '');
+	}
 }
 
 
@@ -295,7 +302,7 @@ class Championship {
 
 /**
  * @typedef {Object} RoundObj
- * @property {number[][]} unitList
+ * @property {UnitObj[]} unitList
  */
 
 class Round {
@@ -306,7 +313,7 @@ class Round {
 	index;
 
 	/**
-	 * @type {Contestant[][]}
+	 * @type {Unit[]}
 	 */
 	unitList = [];
 
@@ -335,7 +342,7 @@ class Round {
 	 */
 	static parse(obj, championship) {
 		const round = championship.appendRound();
-		round.unitList = obj.unitList.map(unit => unit.map(index => championship.organization.getContestant(index)));
+		obj.unitList.forEach(unit => Unit.parse(unit, round));
 	}
 
 	/**
@@ -343,13 +350,13 @@ class Round {
 	 */
 	build() {
 		return {
-			unitList: this.unitList.map(unit => unit.map(contestant => contestant.index)),
+			unitList: this.unitList.map(unit => unit.build()),
 		};
 	}
 
 	/**
 	 * @param {number} index
-	 * @returns {?(Contestant[])}
+	 * @returns {?Unit}
 	 */
 	getUnit(index) {
 		if (index === null || index === '')
@@ -362,12 +369,90 @@ class Round {
 	}
 
 	/**
-	 * @returns {Contestant[]}
+	 * @returns {Unit}
 	 */
 	appendUnit() {
-		const unit = [];
+		const unit = new Unit(this.unitList.length, this);
 		this.unitList.push(unit);
 		return unit;
+	}
+}
+
+
+/**
+ * @typedef {Object} UnitObj
+ * @property {number[]} contestantList
+ */
+
+class Unit {
+
+	/**
+	 * @type {number}
+	 */
+	index;
+
+	/**
+	 * @type {Contestant[]}
+	 */
+	contestantList = [];
+
+	/**
+	 * @type {Round}
+	 */
+	round;
+
+	/**
+	 * @param {number} index
+	 * @param {Round} round
+	 */
+	constructor(index, round) {
+		this.index = index;
+		this.round = round;
+	}
+
+	/**
+	 * @param {UnitObj} obj
+	 * @param {Round} round
+	 */
+	static parse(obj, round) {
+		const unit = round.appendUnit();
+		obj.contestantList.forEach(contestant => {
+			unit.appendContestant(round.championship.organization.getContestant(contestant));
+		});
+	}
+
+	/**
+	 * @returns {UnitObj}
+	 */
+	build() {
+		return {
+			contestantList: this.contestantList.map(contestant => contestant.index),
+		};
+	}
+
+	delete() {
+		let index = this.index;
+		this.round.unitList.splice(index, 1);
+		while (index < this.round.unitList.length) {
+			this.round.unitList[index]--;
+			index++;
+		}
+	}
+
+	/**
+	 * @param {Contestant} contestant
+	 */
+	appendContestant(contestant) {
+		this.contestantList.push(contestant);
+	}
+
+	/**
+	 * @param {number} index
+	 */
+	removeContestant(index) {
+		this.contestantList.splice(index, 1);
+		if (this.contestantList.length === 0)
+			this.delete();
 	}
 }
 
@@ -752,3 +837,4 @@ let organization = Organization.loadFromLocalStorage();
 // TODO undo and redo functionality
 // TODO display app version in the import modal
 // TODO destroy organization contents
+// TODO implement getOrNull

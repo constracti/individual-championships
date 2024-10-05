@@ -33,7 +33,7 @@ function refresh() {
 						elem({
 							tag: 'h3',
 							klass: 'm-2',
-							content: 'Μονάδες',
+							content: 'Διαγωνιζόμενοι',
 						}),
 						elem({
 							tag: 'button',
@@ -50,19 +50,19 @@ function refresh() {
 				}),
 				elem({
 					klass: 'd-flex flex-row flex-wrap',
-					content: round.unitList.map((unit, unitIndex) => elem({
+					content: round.unitList.map(unit => elem({
 						klass: 'd-flex flex-row m-2 border p-1',
 						content: [
 							actionIcon({
 								template: 'add',
 								click: () => {
-									contestantInsertUnit.value = unitIndex;
+									contestantInsertUnit.value = unit.index;
 									const form = document.getElementById('contestant-insert-form');
 									const modal = bootstrap.Modal.getOrCreateInstance(form);
 									modal.show();
 								},
 							}),
-							...unit.map((contestant, contestantIndex) => elem({
+							...unit.contestantList.map((contestant, index) => elem({
 								klass: 'd-flex flex-row',
 								content: [
 									elem({
@@ -70,19 +70,12 @@ function refresh() {
 									}),
 									elem({
 										klass: 'm-1',
-										content: contestant.name,
+										content: contestant.getNameWithTeam(),
 									}),
 									actionIcon({
 										template: 'delete',
 										click: () => {
-											const round = championship.getLastRound();
-											const unit = round.getUnit(unitIndex);
-											if (unit === null)
-												throw 'unit: not valid';
-											unit.splice(contestantIndex, 1);
-											if (unit.length === 0)
-												round.unitList.splice(unitIndex, 1);
-											// TODO unit methods
+											unit.removeContestant(index);
 											organization.saveToLocalStorage();
 											refresh();
 										},
@@ -90,7 +83,10 @@ function refresh() {
 								],
 							})),
 						],
-					})),
+					})).concat(round.unitList.length === 0 ? [elem({
+						klass: ' m-2 border border-warning-subtle p-1 bg-warning-subtle',
+						content: [elem({klass: 'm-1', content: textDict.emptyList})],
+					})] : []),
 				}),
 				elem({
 					klass: 'd-flex flex-row',
@@ -111,6 +107,7 @@ function refresh() {
 		}));
 	});
 
+	// content insert form
 	refreshContestantInsertSelect();
 
 }
@@ -133,7 +130,7 @@ function refreshContestantInsertSelect() {
 		if (team !== null && contestant.team !== team)
 			return;
 		const round = championship.getLastRound();
-		if (round.unitList.flat().includes(contestant))
+		if ([].concat(...round.unitList.map(unit => unit.contestantList)).includes(contestant))
 			return;
 		contestantInsertSelect.appendChild(elem({tag: 'option', value: contestant.index, content: contestant.name}));
 	});
@@ -144,7 +141,7 @@ document.getElementById('contestant-insert-form').addEventListener('submit', eve
 	const form = event.currentTarget;
 	const contestant = organization.getContestant(contestantInsertSelect.value);
 	const unit = championship.getLastRound().getUnit(contestantInsertUnit.value) ?? championship.getLastRound().appendUnit();
-	unit.push(contestant);
+	unit.appendContestant(contestant);
 	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(form);
 	modal.hide();

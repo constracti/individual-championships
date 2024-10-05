@@ -32,10 +32,7 @@ function refresh() {
 		contestantListNode.appendChild(elem({
 			klass: 'list-group-item d-flex flex-row justify-content-between p-1',
 			content: [
-				elem({klass: 'd-flex flex-row flex-align-center', content: [
-					elem({tag: 'span', klass: 'm-1', content: contestant.name}),
-					elem({tag: 'span', klass: 'badge text-bg-secondary m-1', content: contestant.team?.getTitle() ?? null}),
-				]}),
+				elem({klass: 'm-1', content: contestant.getNameWithTeam()}),
 				elem({
 					klass: 'd-flex flex-row',
 					content: [

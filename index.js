@@ -19,7 +19,7 @@ function refresh() {
 	if (organization.contestantList.length === 0)
 		contestantListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
 	organization.sortedContestantList().forEach(contestant => {
-		contestantListNode.appendChild(elem({klass: 'list-group-item', content: contestant.name}));
+		contestantListNode.appendChild(elem({klass: 'list-group-item', content: contestant.getNameWithTeam()}));
 	});
 
 	// championship list
