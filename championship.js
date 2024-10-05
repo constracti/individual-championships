@@ -46,6 +46,7 @@ document.getElementById('championship-insert-form').addEventListener('submit', e
 	const name = document.getElementById('championship-insert-name').value;
 	const championship = organization.appendChampionship(name);
 	championship.appendRound();
+	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(form);
 	modal.hide();
 	form.reset();
@@ -58,6 +59,7 @@ document.getElementById('championship-update-form').addEventListener('submit', e
 	const championship = organization.getChampionship(document.getElementById('championship-update-index').value);
 	const name = document.getElementById('championship-update-name').value;
 	championship.update(name);
+	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(form);
 	modal.hide();
 	form.reset();
@@ -69,6 +71,7 @@ document.getElementById('championship-delete-form').addEventListener('submit', e
 	const form = event.currentTarget;
 	const championship = organization.getChampionship(document.getElementById('championship-delete-index').value);
 	championship.delete();
+	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(form);
 	modal.hide();
 	form.reset();

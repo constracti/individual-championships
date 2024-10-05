@@ -26,12 +26,12 @@ function refresh() {
 						actionIcon({
 							template: 'moveup',
 							enabled: !team.isFirst(),
-							click: () => {team.moveUp(); refresh();},
+							click: () => {team.moveUp(); organization.saveToLocalStorage(); refresh();},
 						}),
 						actionIcon({
 							template: 'movedown',
 							enabled: !team.isLast(),
-							click: () => {team.moveDown(); refresh();},
+							click: () => {team.moveDown(); organization.saveToLocalStorage(); refresh();},
 						}),
 						actionIcon({
 							template: 'delete',
@@ -55,6 +55,7 @@ document.getElementById('team-insert-form').addEventListener('submit', event => 
 	const form = event.currentTarget;
 	const name = document.getElementById('team-insert-name').value;
 	organization.appendTeam(name);
+	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(form);
 	modal.hide();
 	form.reset();
@@ -67,6 +68,7 @@ document.getElementById('team-update-form').addEventListener('submit', event => 
 	const team = organization.getTeam(document.getElementById('team-update-index').value);
 	const name = document.getElementById('team-update-name').value;
 	team.update(name);
+	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(form);
 	modal.hide();
 	form.reset();
@@ -78,6 +80,7 @@ document.getElementById('team-delete-form').addEventListener('submit', event => 
 	const form = event.currentTarget;
 	const team = organization.getTeam(document.getElementById('team-delete-index').value);
 	team.delete();
+	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(form);
 	modal.hide();
 	form.reset();

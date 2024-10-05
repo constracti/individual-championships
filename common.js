@@ -40,7 +40,7 @@ class Team {
 	 * @param {Organization} organization
 	 */
 	static parse(obj, organization) {
-		organization.appendTeam(obj.name, false);
+		organization.appendTeam(obj.name);
 	}
 
 	/**
@@ -58,7 +58,6 @@ class Team {
 	 */
 	update(name) {
 		this.name = name;
-		this.organization.saveToLocalStorage();
 	}
 
 	moveUp() {
@@ -70,7 +69,6 @@ class Team {
 		this.index = index - 1;
 		this.organization.teamList[index] = other;
 		this.organization.teamList[index - 1] = this;
-		this.organization.saveToLocalStorage();
 	}
 
 	moveDown() {
@@ -82,7 +80,6 @@ class Team {
 		this.index = index + 1;
 		this.organization.teamList[index] = other;
 		this.organization.teamList[index + 1] = this;
-		this.organization.saveToLocalStorage();
 	}
 
 	delete() {
@@ -95,7 +92,6 @@ class Team {
 		this.organization.contestantList
 			.filter(contestant => contestant.team === this)
 			.forEach(contestant => contestant.team = null);
-		this.organization.saveToLocalStorage();
 	}
 
 	/**
@@ -169,7 +165,7 @@ class Contestant {
 	 * @param {Organization} organization
 	 */
 	static parse(obj, organization) {
-		organization.appendContestant(obj.name, organization.getTeam(obj.team), false);
+		organization.appendContestant(obj.name, organization.getTeam(obj.team));
 	}
 
 	/**
@@ -190,7 +186,6 @@ class Contestant {
 	update(name, team) {
 		this.name = name;
 		this.team = team;
-		this.organization.saveToLocalStorage();
 	}
 
 	delete() {
@@ -200,7 +195,6 @@ class Contestant {
 			this.organization.contestantList[index].index--;
 			index++;
 		}
-		this.organization.saveToLocalStorage();
 	}
 }
 
@@ -268,7 +262,6 @@ class Championship {
 	 */
 	update(name) {
 		this.name = name;
-		this.organization.saveToLocalStorage();
 	}
 
 	delete() {
@@ -278,7 +271,6 @@ class Championship {
 			this.organization.championshipList[index]--;
 			index++;
 		}
-		this.organization.saveToLocalStorage();
 	}
 
 	/**
@@ -451,8 +443,8 @@ class Organization {
 		obj.teamList.forEach(team => Team.parse(team, this));
 		obj.contestantList.forEach(contestant => Contestant.parse(contestant, this));
 		obj.championshipList.forEach(championship => Championship.parse(championship, this));
-		this.setContestantGroupBy(obj.contestantGroupBy ?? Organization.CONTESTANT_GROUP_BY, false);
-		this.setContestantSortBy(obj.contestantSortBy ?? Organization.CONTESTANT_SORT_BY, false);
+		this.setContestantGroupBy(obj.contestantGroupBy ?? Organization.CONTESTANT_GROUP_BY);
+		this.setContestantSortBy(obj.contestantSortBy ?? Organization.CONTESTANT_SORT_BY);
 	}
 
 	/**
@@ -522,13 +514,10 @@ class Organization {
 
 	/**
 	 * @param {string} name
-	 * @param {boolean} [save=true]
 	 */
-	appendTeam(name, save) {
+	appendTeam(name) {
 		const team = new Team(this.teamList.length, name, this);
 		this.teamList.push(team);
-		if (save ?? true)
-			this.saveToLocalStorage();
 	}
 
 	/**
@@ -548,33 +537,24 @@ class Organization {
 	/**
 	 * @param {string} name
 	 * @param {?Team} team
-	 * @param {boolean} [save=true]
 	 */
-	appendContestant(name, team, save) {
+	appendContestant(name, team) {
 		const contestant = new Contestant(this.contestantList.length, name, team, this);
 		this.contestantList.push(contestant);
-		if (save ?? true)
-			this.saveToLocalStorage();
 	}
 
 	/**
 	 * @param {string} groupby
-	 * @param {boolean} [save=true]
 	 */
-	setContestantGroupBy(groupby, save) {
+	setContestantGroupBy(groupby) {
 		this.contestantGroupBy = groupby;
-		if (save ?? true)
-			this.saveToLocalStorage();
 	}
 
 	/**
 	 * @param {string} sortby
-	 * @param {boolean} [save=true]
 	 */
-	setContestantSortBy(sortby, save) {
+	setContestantSortBy(sortby) {
 		this.contestantSortBy = sortby;
-		if (save ?? true)
-			this.saveToLocalStorage();
 	}
 
 	/**
@@ -622,13 +602,10 @@ class Organization {
 	/**
 	 * @param {string} name
 	 * @returns {Championship}
-	 * @param {boolean} [save=true]
 	 */
-	appendChampionship(name, save) {
+	appendChampionship(name) {
 		const championship = new Championship(this.championshipList.length, name, this);
 		this.championshipList.push(championship);
-		if (save ?? true)
-			this.saveToLocalStorage();
 		return championship;
 	}
 
@@ -656,7 +633,7 @@ class Organization {
  * @param {?string} args.klass
  * @param {?string} args.value
  * @param {?string} args.href
- * @param {*} args.click
+ * @param {?{(): void}} args.click
  * @param {?(string|HTMLElement[])} args.content
  * @returns {HTMLElement}
  */
@@ -702,7 +679,7 @@ function elem(args) {
  * @param {?string} args.color
  * @param {?string} args.icon
  * @param {?boolean} args.enabled
- * @param {*} args.click
+ * @param {?{(): void}} args.click
  * @returns {HTMLElement}
  */
 function actionIcon(args) {
@@ -775,4 +752,3 @@ let organization = Organization.loadFromLocalStorage();
 // TODO undo and redo functionality
 // TODO display app version in the import modal
 // TODO destroy organization contents
-// TODO typedef callable () => void
