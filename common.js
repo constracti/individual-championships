@@ -274,7 +274,7 @@ class Championship {
 		let index = this.index;
 		this.organization.championshipList.splice(index, 1);
 		while (index < this.organization.championshipList.length) {
-			this.organization.championshipList[index]--;
+			this.organization.championshipList[index].index--;
 			index++;
 		}
 	}
@@ -427,6 +427,8 @@ class Round {
 			this.unitList[curr] = this.unitList[rand];
 			this.unitList[rand] = temp;
 		}
+		for (curr = 0; curr < this.unitList.length; curr++)
+			this.unitList[curr].index = curr;
 	}
 
 	/**
@@ -513,7 +515,7 @@ class Unit {
 		let index = this.index;
 		this.round.unitList.splice(index, 1);
 		while (index < this.round.unitList.length) {
-			this.round.unitList[index]--;
+			this.round.unitList[index].index--;
 			index++;
 		}
 	}

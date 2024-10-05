@@ -46,7 +46,7 @@ function refresh() {
 									},
 									content: 'Προσθήκη',
 								}) : null,
-								round.gameList.length === 0 ? elem({
+								round.unitList.length > 1 && round.gameList.length === 0 ? elem({
 									tag: 'button',
 									klass: 'btn btn-secondary m-2',
 									click: () => {
@@ -56,7 +56,7 @@ function refresh() {
 									},
 									content: 'Ανάμιξη',
 								}) : null,
-								round.gameList.length === 0 ? elem({
+								round.unitList.length > 1 && round.gameList.length === 0 ? elem({
 									tag: 'button',
 									klass: 'btn btn-primary m-2',
 									click: () => {
