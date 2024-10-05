@@ -1,3 +1,5 @@
+// TODO affect only current championship
+
 const urlParams = new URLSearchParams(window.location.search);
 
 if (!urlParams.has('championship'))
@@ -23,48 +25,96 @@ function refresh() {
 			klass: 'd-flex flex-column',
 			content: [
 				elem({
-					tag: 'h2',
-					klass: 'm-2',
-					content: `Γύρος ${round.index + 1}`,
-				}),
-				elem({
-					klass: 'd-flex flex-row',
+					klass: 'd-flex flex-row justify-content-between',
 					content: [
 						elem({
-							tag: 'h3',
+							tag: 'h2',
 							klass: 'm-2',
-							content: 'Διαγωνιζόμενοι',
+							content: `Γύρος ${round.index + 1}`,
 						}),
 						elem({
-							tag: 'button',
-							klass: 'btn btn-success m-2',
-							click: () => {
-								contestantInsertUnit.value = '';
-								const form = document.getElementById('contestant-insert-form');
-								const modal = bootstrap.Modal.getOrCreateInstance(form);
-								modal.show();
-							},
-							content: 'Προσθήκη',
+							klass: 'd-flex flex-row',
+							content: [
+								round.gameList.length === 0 ? elem({
+									tag: 'button',
+									klass: 'btn btn-success m-2',
+									click: () => {
+										contestantInsertUnit.value = '';
+										const form = document.getElementById('contestant-insert-form');
+										const modal = bootstrap.Modal.getOrCreateInstance(form);
+										modal.show();
+									},
+									content: 'Προσθήκη',
+								}) : null,
+								round.gameList.length === 0 ? elem({
+									tag: 'button',
+									klass: 'btn btn-secondary m-2',
+									click: () => {
+										round.shuffleUnitList();
+										organization.saveToLocalStorage();
+										refresh();
+									},
+									content: 'Ανάμιξη',
+								}) : null,
+								round.gameList.length === 0 ? elem({
+									tag: 'button',
+									klass: 'btn btn-primary m-2',
+									click: () => {
+										let game = null;
+										for (let unit of round.unitList) {
+											if (game === null)
+												game = round.appendGame();
+											game.appendUnit(unit);
+											if (game.unitList.length === 2)
+												game = null;
+										}
+										organization.saveToLocalStorage();
+										refresh();
+									},
+									content: 'Επόμενο',
+								}) : null,
+								round.gameList.length !== 0 ? elem({
+									tag: 'button',
+									klass: 'btn btn-danger m-2',
+									click: () => {
+										round.gameList = [];
+										round.unitList.forEach(unit => unit.setPass(false));
+										organization.saveToLocalStorage();
+										refresh();
+									},
+									content: 'Προηγούμενο',
+								}) : null,
+								round.gameList.length !== 0 ? elem({
+									tag: 'button',
+									klass: 'btn btn-primary m-2',
+									click: () => {
+									},
+									content: 'Επόμενο',
+								}) : null,
+							],
 						}),
 					],
 				}),
-				elem({
-					klass: 'd-flex flex-row flex-wrap',
-					content: round.unitList.map(unit => elem({
-						klass: 'd-flex flex-row m-2 border p-1',
-						content: [
-							actionIcon({
-								template: 'add',
-								click: () => {
-									contestantInsertUnit.value = unit.index;
-									const form = document.getElementById('contestant-insert-form');
-									const modal = bootstrap.Modal.getOrCreateInstance(form);
-									modal.show();
-								},
-							}),
-							...unit.contestantList.map((contestant, index) => elem({
-								klass: 'd-flex flex-row',
-								content: [
+				round.gameList.length === 0 ? elem({
+					klass: 'd-flex flew-row flex-wrap',
+					content: [
+						round.unitList.length === 0 ? elem({
+							klass: ' m-2 border border-warning-subtle bg-warning-subtle rounded p-1',
+							content: [elem({klass: 'm-1', content: textDict.emptyList})],
+						}) : null,
+						...round.unitList.map(unit => elem({
+							klass: 'm-2 border rounded d-flex flex-row p-1',
+							content: [
+								actionIcon({
+									template: 'add',
+									click: () => {
+										contestantInsertUnit.value = unit.index;
+										const form = document.getElementById('contestant-insert-form');
+										const modal = bootstrap.Modal.getOrCreateInstance(form);
+										modal.show();
+									},
+								}),
+								...unit.contestantList.map((contestant, index) => [
 									elem({
 										klass: 'm-1 border-start',
 									}),
@@ -80,33 +130,38 @@ function refresh() {
 											refresh();
 										},
 									}),
-								],
-							})),
-						],
-					})).concat(round.unitList.length === 0 ? [elem({
-						klass: ' m-2 border border-warning-subtle p-1 bg-warning-subtle',
-						content: [elem({klass: 'm-1', content: textDict.emptyList})],
-					})] : []),
-				}),
+								]).flat(),
+							],
+						})),
+					],
+				}) : null,
 				elem({
-					klass: 'd-flex flex-row',
-					content: [
-						elem({
-							tag: 'button',
-							klass: 'btn btn-secondary m-2',
+					klass: 'm-2 list-group',
+					content: round.gameList.map(game => elem({
+						klass: 'list-group-item d-flex flex-row justify-content-center p-2',
+						content: game.unitList.map(unit => elem({
+							klass: 'm-2 border rounded d-flex flex-row p-1' + (unit.pass ? ' border-success-subtle bg-success-subtle' : ''),
 							click: () => {
-								round.shuffleUnitList();
+								unit.setPass(!unit.pass);
 								organization.saveToLocalStorage();
 								refresh();
 							},
-							content: 'Ανάμιξη',
-						}),
-						elem({
-							tag: 'button',
-							klass: 'btn btn-primary m-2',
-							content: 'Χωρισμός',
-						}),
-					],
+							content: [
+								elem({
+									klass: 'm-1' + (unit.pass ? ' bi-check-lg' : ' bi-x-lg'),
+								}),
+								...unit.contestantList.map(contestant => [
+									elem({
+										klass: 'm-1 border-start' + (unit.pass ? ' border-success-subtle' : ''),
+									}),
+									elem({
+										klass: 'm-1',
+										content: contestant.getNameWithTeam(),
+									}),
+								]).flat(),
+							],
+						})),
+					})),
 				}),
 			],
 		}));

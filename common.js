@@ -303,6 +303,7 @@ class Championship {
 /**
  * @typedef {Object} RoundObj
  * @property {UnitObj[]} unitList
+ * @property {GameObj[]} gameList
  */
 
 class Round {
@@ -343,6 +344,7 @@ class Round {
 	static parse(obj, championship) {
 		const round = championship.appendRound();
 		obj.unitList.forEach(unit => Unit.parse(unit, round));
+		obj.gameList.forEach(game => Game.parse(game, round));
 	}
 
 	/**
@@ -351,6 +353,7 @@ class Round {
 	build() {
 		return {
 			unitList: this.unitList.map(unit => unit.build()),
+			gameList: this.gameList.map(game => game.build()),
 		};
 	}
 
@@ -378,6 +381,7 @@ class Round {
 	}
 
 	shuffleUnitList() {
+		// Fisher-Yates shuffle
 		let curr = this.unitList.length;
 		while (curr !== 0) {
 			const rand = Math.floor(Math.random() * curr);
@@ -387,12 +391,22 @@ class Round {
 			this.unitList[rand] = temp;
 		}
 	}
+
+	/**
+	 * @returns {Game}
+	 */
+	appendGame() {
+		const game = new Game(this);
+		this.gameList.push(game);
+		return game;
+	}
 }
 
 
 /**
  * @typedef {Object} UnitObj
  * @property {number[]} contestantList
+ * @property {boolean} pass
  */
 
 class Unit {
@@ -406,6 +420,11 @@ class Unit {
 	 * @type {Contestant[]}
 	 */
 	contestantList = [];
+
+	/**
+	 * @type {boolean}
+	 */
+	pass = false;
 
 	/**
 	 * @type {Round}
@@ -430,6 +449,7 @@ class Unit {
 		obj.contestantList.forEach(contestant => {
 			unit.appendContestant(round.championship.organization.getContestant(contestant));
 		});
+		unit.pass = obj.pass;
 	}
 
 	/**
@@ -438,6 +458,7 @@ class Unit {
 	build() {
 		return {
 			contestantList: this.contestantList.map(contestant => contestant.index),
+			pass: this.pass,
 		};
 	}
 
@@ -465,10 +486,62 @@ class Unit {
 		if (this.contestantList.length === 0)
 			this.delete();
 	}
+
+	/**
+	 * @param {boolean} pass
+	 */
+	setPass(pass) {
+		this.pass = pass;
+	}
 }
 
 
-class Game {}
+/**
+ * @typedef {number[]} GameObj
+ */
+
+class Game {
+
+	/**
+	 * @type {Unit[]}
+	 */
+	unitList = [];
+
+	/**
+	 * @type {Round}
+	 */
+	round;
+
+	/**
+	 * @param {Round} round
+	 */
+	constructor(round) {
+		this.round = round;
+	}
+
+	/**
+	 * @param {GameObj} obj
+	 * @param {Round} round
+	 */
+	static parse(obj, round) {
+		const game = round.appendGame();
+		obj.forEach(unit => game.appendUnit(round.getUnit(unit)));
+	}
+
+	/**
+	 * @returns {GameObj}
+	 */
+	build() {
+		return this.unitList.map(unit => unit.index);
+	}
+
+	/**
+	 * @param {Unit} unit
+	 */
+	appendUnit(unit) {
+		this.unitList.push(unit);
+	}
+}
 
 
 /**
@@ -730,7 +803,7 @@ class Organization {
  * @param {?string} args.value
  * @param {?string} args.href
  * @param {?{(): void}} args.click
- * @param {?(string|HTMLElement[])} args.content
+ * @param {?(string|(?HTMLElement)[])} args.content
  * @returns {HTMLElement}
  */
 function elem(args) {
@@ -765,7 +838,8 @@ function elem(args) {
 		node.innerHTML = args.content;
 	else
 		for (let child of args.content)
-			node.appendChild(child);
+			if (child !== null)
+				node.appendChild(child);
 	return node;
 }
 
@@ -813,7 +887,7 @@ function actionIcon(args) {
 		args.enabled = true;
 	if (args.click === undefined)
 		throw 'actionIcon: args.click';
-	const link = document.createElement('a');
+	const link = document.createElement('a'); // TODO convert to div.btn
 	const color = args.enabled ? args.color : 'link-secondary';
 	link.className = `${args.icon} ${color} m-1`;
 	if (args.enabled)
