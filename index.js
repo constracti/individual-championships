@@ -8,7 +8,7 @@ function refresh() {
 	if (organization.teamList.length === 0)
 		teamListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
 	organization.teamList.forEach(team => {
-		teamListNode.appendChild(elem({klass: 'list-group-item', content: team.getTitle()}));
+		teamListNode.appendChild(elem({klass: 'list-group-item', content: team.getNameWithIndex()}));
 	});
 
 	// contestant list

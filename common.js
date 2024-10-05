@@ -109,10 +109,9 @@ class Team {
 	}
 
 	/**
-	 * Get Team name with index.
 	 * @returns {string}
 	 */
-	getTitle() {
+	getNameWithIndex() {
 		return `${this.index + 1}. ${this.name}`;
 	}
 }
@@ -281,12 +280,29 @@ class Championship {
 	}
 
 	/**
+	 * @param {number} index
+	 * @returns {?Round}
+	 */
+	getRoundOrNull(index) {
+		return this.roundList[index] ?? null;
+	}
+
+	/**
+	 * @param {number} index
+	 * @returns {Round}
+	 */
+	getRound(index) {
+		const round = this.getRoundOrNull(index);
+		if (round === null)
+			throw 'Championship::getRound: invalid index';
+		return round;
+	}
+
+	/**
 	 * @returns {Round}
 	 */
 	getLastRound() {
-		if (this.roundList.length === 0)
-			throw 'Championship::getLastRound: no rounds';
-		return this.roundList[this.roundList.length - 1];
+		return this.getRound(this.roundList.length - 1);
 	}
 
 	/**
@@ -358,30 +374,51 @@ class Round {
 	}
 
 	/**
-	 * @param {number} index
+	 * @returns {?Round}
+	 */
+	getPrevious() {
+		if (this.index === 0)
+			return null;
+		return this.championship.getRound(this.index - 1);
+	}
+
+	/**
+	 * @param {number|string|null} index
 	 * @returns {?Unit}
 	 */
-	getUnit(index) {
+	getUnitOrNull(index) {
 		if (index === null || index === '')
 			return null;
 		if (typeof(index) === 'string')
 			index = parseInt(index);
-		if (index >= 0 && index < this.unitList.length)
-			return this.unitList[index];
-		throw 'Round::getUnit: invalid index';
+		return this.unitList[index] ?? null;
 	}
 
 	/**
+	 * @param {number} index
 	 * @returns {Unit}
 	 */
-	appendUnit() {
-		const unit = new Unit(this.unitList.length, this);
+	getUnit(index) {
+		const unit = this.getUnitOrNull(index);
+		if (unit === null)
+			throw 'Round::getUnit: invalid index';
+		return unit;
+	}
+
+	/**
+	 * @param {?Unit} parent
+	 * @returns {Unit}
+	 */
+	appendUnit(parent) {
+		const unit = new Unit(this.unitList.length, parent, this);
 		this.unitList.push(unit);
 		return unit;
 	}
 
+	/**
+	 * Fisher-Yates shuffle
+	 */
 	shuffleUnitList() {
-		// Fisher-Yates shuffle
 		let curr = this.unitList.length;
 		while (curr !== 0) {
 			const rand = Math.floor(Math.random() * curr);
@@ -407,6 +444,7 @@ class Round {
  * @typedef {Object} UnitObj
  * @property {number[]} contestantList
  * @property {boolean} pass
+ * @property {?number} parent
  */
 
 class Unit {
@@ -427,16 +465,23 @@ class Unit {
 	pass = false;
 
 	/**
+	 * @type {?Unit}
+	 */
+	parent;
+
+	/**
 	 * @type {Round}
 	 */
 	round;
 
 	/**
 	 * @param {number} index
+	 * @param {?Unit} parent
 	 * @param {Round} round
 	 */
-	constructor(index, round) {
+	constructor(index, parent, round) {
 		this.index = index;
+		this.parent = parent;
 		this.round = round;
 	}
 
@@ -445,7 +490,8 @@ class Unit {
 	 * @param {Round} round
 	 */
 	static parse(obj, round) {
-		const unit = round.appendUnit();
+		const parent = obj.parent !== null ? round.getPrevious()?.getUnit(obj.parent) ?? null : null;
+		const unit = round.appendUnit(parent);
 		obj.contestantList.forEach(contestant => {
 			unit.appendContestant(round.championship.organization.getContestant(contestant));
 		});
@@ -459,6 +505,7 @@ class Unit {
 		return {
 			contestantList: this.contestantList.map(contestant => contestant.index),
 			pass: this.pass,
+			parent: this.parent?.index ?? null,
 		};
 	}
 
@@ -482,6 +529,8 @@ class Unit {
 	 * @param {number} index
 	 */
 	removeContestant(index) {
+		if (index < 0 || index >= this.contestantList.length)
+			throw 'Unit::removeContestant: invalid index';
 		this.contestantList.splice(index, 1);
 		if (this.contestantList.length === 0)
 			this.delete();
@@ -671,14 +720,23 @@ class Organization {
 	 * @param {number|string|null} index
 	 * @returns {?Team}
 	 */
-	getTeam(index) {
+	getTeamOrNull(index) {
 		if (index === null || index === '')
 			return null;
 		if (typeof(index) === 'string')
 			index = parseInt(index);
-		if (index >= 0 && index < this.teamList.length)
-			return this.teamList[index];
-		throw 'Organization::getTeam: invalid index';
+		return this.teamList[index] ?? null;
+	}
+
+	/**
+	 * @param {number|string|null} index
+	 * @returns {Team}
+	 */
+	getTeam(index) {
+		const team = this.getTeamOrNull(index);
+		if (team === null)
+			throw 'Organization::getTeam: invalid index';
+		return team;
 	}
 
 	/**
@@ -693,14 +751,23 @@ class Organization {
 	 * @param {number|string|null} index
 	 * @returns {?Contestant}
 	 */
-	getContestant(index) {
+	getContestantOrNull(index) {
 		if (index === null || index === '')
 			return null;
 		if (typeof(index) === 'string')
 			index = parseInt(index);
-		if (index >= 0 && index < this.contestantList.length)
-			return this.contestantList[index];
-		throw 'Organization::getContestant: invalid index';
+		return this.contestantList[index] ?? null;
+	}
+
+	/**
+	 * @param {number|string|null} index
+	 * @returns {Contestant}
+	 */
+	getContestant(index) {
+		const contestant = this.getContestantOrNull(index);
+		if (contestant === null)
+			throw 'Organization::getContestant: invalid index';
+		return contestant;
 	}
 
 	/**
@@ -758,14 +825,23 @@ class Organization {
 	 * @param {number|string|null} index
 	 * @returns {?Championship}
 	 */
-	getChampionship(index) {
+	getChampionshipOrNull(index) {
 		if (index === null || index === '')
 			return null;
 		if (typeof(index) === 'string')
 			index = parseInt(index);
-		if (index >= 0 && index < this.championshipList.length)
-			return this.championshipList[index];
-		throw 'Organization::getChampionship: invalid index';
+		return this.championshipList[index] ?? null;
+	}
+
+	/**
+	 * @param {number|string|null} index
+	 * @returns {Championship}
+	 */
+	getChampionship(index) {
+		const championship = this.getChampionshipOrNull(index);
+		if (championship === null)
+			throw 'Organization::getChampionship: invalid index';
+		return championship;
 	}
 
 	/**
@@ -922,4 +998,3 @@ let organization = Organization.loadFromLocalStorage();
 // TODO undo and redo functionality
 // TODO display app version in the import modal
 // TODO destroy organization contents
-// TODO implement getOrNull

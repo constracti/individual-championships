@@ -178,14 +178,14 @@ const contestantInsertSelect = document.getElementById('contestant-insert-select
 
 contestantInsertTeam.appendChild(elem({tag: 'option', value: '', content: textDict.nullOption}));
 organization.teamList.forEach(team => {
-	contestantInsertTeam.appendChild(elem({tag: 'option', value: team.index, content: team.getTitle()}));
+	contestantInsertTeam.appendChild(elem({tag: 'option', value: team.index, content: team.getNameWithIndex()}));
 });
 contestantInsertTeam.addEventListener('change', refreshContestantInsertSelect);
 
 function refreshContestantInsertSelect() {
 	Array.from(contestantInsertSelect.children).forEach(child => child.remove());
 	contestantInsertSelect.appendChild(elem({tag: 'option', value: '', content: textDict.nullOption}));
-	const team = organization.getTeam(contestantInsertTeam.value);
+	const team = organization.getTeamOrNull(contestantInsertTeam.value);
 	organization.sortedContestantList().forEach(contestant => {
 		if (team !== null && contestant.team !== team)
 			return;
@@ -200,7 +200,7 @@ document.getElementById('contestant-insert-form').addEventListener('submit', eve
 	event.preventDefault();
 	const form = event.currentTarget;
 	const contestant = organization.getContestant(contestantInsertSelect.value);
-	const unit = championship.getLastRound().getUnit(contestantInsertUnit.value) ?? championship.getLastRound().appendUnit();
+	const unit = championship.getLastRound().getUnitOrNull(contestantInsertUnit.value) ?? championship.getLastRound().appendUnit(null);
 	unit.appendContestant(contestant);
 	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(form);

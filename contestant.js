@@ -3,7 +3,7 @@ Array.from(document.getElementsByTagName('select')).forEach(select => {
 		return;
 	select.appendChild(elem({tag: 'option', value: '', content: textDict.nullOption}));
 	organization.teamList.forEach(team => {
-		select.appendChild(elem({tag: 'option', value: team.index, content: team.getTitle()}));
+		select.appendChild(elem({tag: 'option', value: team.index, content: team.getNameWithIndex()}));
 	});
 });
 
@@ -68,7 +68,7 @@ document.getElementById('contestant-insert-form').addEventListener('submit', eve
 	event.preventDefault();
 	const form = event.currentTarget;
 	const name = document.getElementById('contestant-insert-name').value;
-	const team = organization.getTeam(document.getElementById('contestant-insert-team').value);
+	const team = organization.getTeamOrNull(document.getElementById('contestant-insert-team').value);
 	organization.appendContestant(name, team);
 	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(form);
@@ -82,7 +82,7 @@ document.getElementById('contestant-update-form').addEventListener('submit', eve
 	const form = event.currentTarget;
 	const contestant = organization.getContestant(document.getElementById('contestant-update-index').value);
 	const name = document.getElementById('contestant-update-name').value;
-	const team = organization.getTeam(document.getElementById('contestant-update-team').value);
+	const team = organization.getTeamOrNull(document.getElementById('contestant-update-team').value);
 	contestant.update(name, team);
 	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(form);

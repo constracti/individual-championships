@@ -9,7 +9,7 @@ function refresh() {
 		teamListNode.appendChild(elem({
 			klass: 'list-group-item d-flex flex-row justify-content-between p-1',
 			content: [
-				elem({klass: 'm-1', content: team.getTitle()}),
+				elem({klass: 'm-1', content: team.getNameWithIndex()}),
 				elem({
 					klass: 'd-flex flex-row',
 					content: [
