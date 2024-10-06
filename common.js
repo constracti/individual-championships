@@ -313,6 +313,13 @@ class Championship {
 		this.roundList.push(round);
 		return round;
 	}
+
+	/**
+	 * @returns {Round[]}
+	 */
+	reversedRoundList() {
+		return this.roundList.toReversed();
+	}
 }
 
 
@@ -371,6 +378,24 @@ class Round {
 			unitList: this.unitList.map(unit => unit.build()),
 			gameList: this.gameList.map(game => game.build()),
 		};
+	}
+
+	delete() {
+		this.championship.roundList.splice(this.index);
+	}
+
+	/**
+	 * @returns {boolean}
+	 */
+	isFirst() {
+		return this.index === 0;
+	}
+
+	/**
+	 * @returns {boolean}
+	 */
+	isLast() {
+		return this.index === this.championship.roundList.length - 1;
 	}
 
 	/**

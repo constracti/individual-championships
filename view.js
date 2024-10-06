@@ -20,7 +20,7 @@ function refresh() {
 
 	// round list
 	Array.from(roundListNode.children).forEach(child => child.remove());
-	championship.roundList.forEach(round => {
+	championship.reversedRoundList().forEach(round => {
 		document.getElementById('round-list').appendChild(elem({
 			klass: 'd-flex flex-column',
 			content: [
@@ -32,7 +32,7 @@ function refresh() {
 							klass: 'm-2',
 							content: `Γύρος ${round.index + 1}`,
 						}),
-						elem({
+						round.isLast() ? elem({
 							klass: 'd-flex flex-row',
 							content: [
 								round.gameList.length === 0 ? elem({
@@ -55,6 +55,16 @@ function refresh() {
 										refresh();
 									},
 									content: 'Ανάμιξη',
+								}) : null,
+								!round.isFirst() && round.gameList.length === 0 ? elem({
+									tag: 'button',
+									klass: 'btn btn-danger m-2',
+									click: () => {
+										round.delete();
+										organization.saveToLocalStorage();
+										refresh();
+									},
+									content: 'Προηγούμενο',
 								}) : null,
 								round.unitList.length > 1 && round.gameList.length === 0 ? elem({
 									tag: 'button',
@@ -88,18 +98,27 @@ function refresh() {
 									tag: 'button',
 									klass: 'btn btn-primary m-2',
 									click: () => {
+										const nextRound = championship.appendRound();
+										round.unitList.forEach(unit => {
+											if (!unit.pass)
+												return;
+											const newUnit = nextRound.appendUnit(unit);
+											unit.contestantList.forEach(contestant => newUnit.appendContestant(contestant));
+										});
+										organization.saveToLocalStorage();
+										refresh();
 									},
 									content: 'Επόμενο',
 								}) : null,
 							],
-						}),
+						}) : null,
 					],
 				}),
 				round.gameList.length === 0 ? elem({
 					klass: 'd-flex flew-row flex-wrap',
 					content: [
 						round.unitList.length === 0 ? elem({
-							klass: ' m-2 border border-warning-subtle bg-warning-subtle rounded p-1',
+							klass: ' m-2 border border-warning-subtle bg-warning-subtle rounded flex-fill p-1',
 							content: [elem({klass: 'm-1', content: textDict.emptyList})],
 						}) : null,
 						...round.unitList.map(unit => elem({
@@ -141,11 +160,11 @@ function refresh() {
 						klass: 'list-group-item d-flex flex-row justify-content-center p-2',
 						content: game.unitList.map(unit => elem({
 							klass: 'm-2 border rounded d-flex flex-row p-1' + (unit.pass ? ' border-success-subtle bg-success-subtle' : ''),
-							click: () => {
+							click: round.isLast() ? () => {
 								unit.setPass(!unit.pass);
 								organization.saveToLocalStorage();
 								refresh();
-							},
+							} : null,
 							content: [
 								elem({
 									klass: 'm-1' + (unit.pass ? ' bi-check-lg' : ' bi-x-lg'),
