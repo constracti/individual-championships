@@ -1,52 +1,109 @@
+const championshipList = document.getElementById('championship-list');
+
+const championshipInsertForm = document.getElementById('championship-insert-form');
+const championshipInsertName = document.getElementById('championship-insert-name');
+
+const championshipUpdateForm = document.getElementById('championship-update-form');
+const championshipUpdateIndex = document.getElementById('championship-update-index');
+const championshipUpdateName = document.getElementById('championship-update-name');
+
+const championshipDeleteForm = document.getElementById('championship-delete-form');
+const championshipDeleteIndex = document.getElementById('championship-delete-index');
+const championshipDeleteName = document.getElementById('championship-delete-name');
+
+const importForm = document.getElementById('import-form');
+const importTextarea = document.getElementById('import-textarea');
+
+const exportTextarea = document.getElementById('export-textarea');
+
 function refresh() {
-
-	// team list
-	const teamListNode = document.getElementById('team-list');
-	Array.from(teamListNode.children).forEach(teamNode => {
-		teamNode.remove();
-	});
-	if (organization.teamList.length === 0)
-		teamListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
-	organization.teamList.forEach(team => {
-		teamListNode.appendChild(elem({klass: 'list-group-item', content: team.getNameWithIndex()}));
-	});
-
-	// contestant list
-	const contestantListNode = document.getElementById('contestant-list');
-	Array.from(contestantListNode.children).forEach(contestantNode => {
-		contestantNode.remove();
-	});
-	if (organization.contestantList.length === 0)
-		contestantListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
-	organization.sortedContestantList().forEach(contestant => {
-		contestantListNode.appendChild(elem({klass: 'list-group-item', content: contestant.getNameWithTeam()}));
-	});
-
-	// championship list
-	const championshipListNode = document.getElementById('championship-list');
-	Array.from(championshipListNode.children).forEach(championshipNode => {
-		championshipNode.remove();
-	});
-	if (organization.championshipList.length === 0)
-		championshipListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
+	championshipList.innerHTML = '';
+	if (organization.championshipList.length === 0) {
+		championshipList.appendChild(elem({
+			klass: 'list-group-item list-group-item-warning',
+			content: textDict.emptyList,
+		}));
+	}
 	organization.sortedChampionshipList().forEach(championship => {
-		championshipListNode.appendChild(elem({tag: 'a', klass: 'list-group-item list-group-item-action', href: `view.html?championship=${championship.index}`, content: championship.name}));
+		championshipList.appendChild(elem({
+			klass: 'list-group-item d-flex flex-row justify-content-between p-1',
+			content: [
+				elem({
+					tag: 'a',
+					klass: 'm-1',
+					href: `view.html?championship=${championship.index}`,
+					content: championship.name,
+				}),
+				elem({
+					klass: 'd-flex flex-row',
+					content: [
+						actionIcon({
+							template: 'edit',
+							click: () => {
+								const modal = bootstrap.Modal.getOrCreateInstance(championshipUpdateForm);
+								championshipUpdateIndex.value = championship.index;
+								championshipUpdateName.value = championship.name;
+								modal.show();
+							},
+						}),
+						actionIcon({
+							template: 'delete',
+							click: () => {
+								const modal = bootstrap.Modal.getOrCreateInstance(championshipDeleteForm);
+								championshipDeleteIndex.value = championship.index;
+								championshipDeleteName.innerHTML = championship.name;
+								modal.show();
+							},
+						}),
+					],
+				}),
+			],
+		}));
 	});
-
-	// export modal
-	document.getElementById('export-textarea').value = organization.toJSON(true);
-
+	exportTextarea.value = organization.toJSON(true);
 }
 
-document.getElementById('import-form').addEventListener('submit', event => {
+championshipInsertForm.addEventListener('submit', event => {
 	event.preventDefault();
-	const form = event.currentTarget;
-	const textarea = document.getElementById('import-textarea');
-	organization = Organization.fromJSON(textarea.value);
+	organization = Organization.loadFromLocalStorage();
+	const championship = organization.appendChampionship(championshipInsertName.value);
+	championship.appendRound();
 	organization.saveToLocalStorage();
-	const modal = bootstrap.Modal.getInstance(form);
+	const modal = bootstrap.Modal.getInstance(championshipInsertForm);
 	modal.hide();
-	form.reset();
+	championshipInsertForm.reset();
+	refresh();
+});
+
+championshipUpdateForm.addEventListener('submit', event => {
+	event.preventDefault();
+	organization = Organization.loadFromLocalStorage();
+	organization.getChampionship(championshipUpdateIndex.value).update(championshipUpdateName.value);
+	organization.saveToLocalStorage();
+	const modal = bootstrap.Modal.getInstance(championshipUpdateForm);
+	modal.hide();
+	championshipUpdateForm.reset();
+	refresh();
+});
+
+championshipDeleteForm.addEventListener('submit', event => {
+	event.preventDefault();
+	organization = Organization.loadFromLocalStorage();
+	organization.getChampionship(championshipDeleteIndex.value).delete();
+	organization.saveToLocalStorage();
+	const modal = bootstrap.Modal.getInstance(championshipDeleteForm);
+	modal.hide();
+	championshipDeleteForm.reset();
+	refresh();
+});
+
+importForm.addEventListener('submit', event => {
+	event.preventDefault();
+	organization = Organization.fromJSON(importTextarea.value);
+	organization.saveToLocalStorage();
+	const modal = bootstrap.Modal.getInstance(importForm);
+	modal.hide();
+	importForm.reset();
 	refresh();
 });
 

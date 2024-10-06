@@ -906,7 +906,7 @@ class Organization {
  * @param {?string} args.value
  * @param {?string} args.href
  * @param {?{(): void}} args.click
- * @param {?(string|(?HTMLElement)[])} args.content
+ * @param {?(string|(HTMLElement)[])} args.content
  * @returns {HTMLElement}
  */
 function elem(args) {
@@ -941,8 +941,7 @@ function elem(args) {
 		node.innerHTML = args.content;
 	else
 		for (let child of args.content)
-			if (child !== null)
-				node.appendChild(child);
+			node.appendChild(child);
 	return node;
 }
 
@@ -1021,7 +1020,7 @@ const textDict = {
 
 let organization = Organization.loadFromLocalStorage();
 
-// TODO check if "database" is "dirty" from another tab
 // TODO undo and redo functionality
 // TODO display app version in the import modal
-// TODO destroy organization contents
+// TODO inform on error
+// TODO keep non-ascii characters in html files and textDict

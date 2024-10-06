@@ -1,12 +1,26 @@
+const teamList = document.getElementById('team-list');
+
+const teamInsertForm = document.getElementById('team-insert-form');
+const teamInsertName = document.getElementById('team-insert-name');
+
+const teamUpdateForm = document.getElementById('team-update-form');
+const teamUpdateIndex = document.getElementById('team-update-index');
+const teamUpdateName = document.getElementById('team-update-name');
+
+const teamDeleteForm = document.getElementById('team-delete-form');
+const teamDeleteIndex = document.getElementById('team-delete-index');
+const teamDeleteName = document.getElementById('team-delete-name');
+
 function refresh() {
-	const teamListNode = document.getElementById('team-list');
-	Array.from(teamListNode.children).forEach(teamNode => {
-		teamNode.remove();
-	});
-	if (organization.teamList.length === 0)
-		teamListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
+	teamList.innerHTML = '';
+	if (organization.teamList.length === 0) {
+		teamList.appendChild(elem({
+			klass: 'list-group-item list-group-item-warning',
+			content: textDict.emptyList,
+		}));
+	}
 	organization.teamList.forEach(team => {
-		teamListNode.appendChild(elem({
+		teamList.appendChild(elem({
 			klass: 'list-group-item d-flex flex-row justify-content-between p-1',
 			content: [
 				elem({klass: 'm-1', content: team.getNameWithIndex()}),
@@ -16,30 +30,38 @@ function refresh() {
 						actionIcon({
 							template: 'edit',
 							click: () => {
-								const form = document.getElementById('team-update-form');
-								const modal = bootstrap.Modal.getOrCreateInstance(form);
-								document.getElementById('team-update-index').value = team.index;
-								document.getElementById('team-update-name').value = team.name;
+								const modal = bootstrap.Modal.getOrCreateInstance(teamUpdateForm);
+								teamUpdateIndex.value = team.index;
+								teamUpdateName.value = team.name;
 								modal.show();
 							},
 						}),
 						actionIcon({
 							template: 'moveup',
 							enabled: !team.isFirst(),
-							click: () => {team.moveUp(); organization.saveToLocalStorage(); refresh();},
+							click: () => {
+								organization = Organization.loadFromLocalStorage();
+								organization.getTeam(team.index).moveUp();
+								organization.saveToLocalStorage();
+								refresh();
+							},
 						}),
 						actionIcon({
 							template: 'movedown',
 							enabled: !team.isLast(),
-							click: () => {team.moveDown(); organization.saveToLocalStorage(); refresh();},
+							click: () => {
+								organization = Organization.loadFromLocalStorage();
+								organization.getTeam(team.index).moveDown();
+								organization.saveToLocalStorage();
+								refresh();
+							},
 						}),
 						actionIcon({
 							template: 'delete',
 							click: () => {
-								const form = document.getElementById('team-delete-form');
-								const modal = bootstrap.Modal.getOrCreateInstance(form);
-								document.getElementById('team-delete-index').value = team.index;
-								document.getElementById('team-delete-name').innerHTML = team.name;
+								const modal = bootstrap.Modal.getOrCreateInstance(teamDeleteForm);
+								teamDeleteIndex.value = team.index;
+								teamDeleteName.innerHTML = team.name;
 								modal.show();
 							},
 						}),
@@ -50,40 +72,36 @@ function refresh() {
 	});
 }
 
-document.getElementById('team-insert-form').addEventListener('submit', event => {
+teamInsertForm.addEventListener('submit', event => {
 	event.preventDefault();
-	const form = event.currentTarget;
-	const name = document.getElementById('team-insert-name').value;
-	organization.appendTeam(name);
+	organization = Organization.loadFromLocalStorage();
+	organization.appendTeam(teamInsertName.value);
 	organization.saveToLocalStorage();
-	const modal = bootstrap.Modal.getInstance(form);
+	const modal = bootstrap.Modal.getInstance(teamInsertForm);
 	modal.hide();
-	form.reset();
+	teamInsertForm.reset();
 	refresh();
 });
 
-document.getElementById('team-update-form').addEventListener('submit', event => {
+teamUpdateForm.addEventListener('submit', event => {
 	event.preventDefault();
-	const form = event.currentTarget;
-	const team = organization.getTeam(document.getElementById('team-update-index').value);
-	const name = document.getElementById('team-update-name').value;
-	team.update(name);
+	organization = Organization.loadFromLocalStorage();
+	organization.getTeam(teamUpdateIndex.value).update(teamUpdateName.value);
 	organization.saveToLocalStorage();
-	const modal = bootstrap.Modal.getInstance(form);
+	const modal = bootstrap.Modal.getInstance(teamUpdateForm);
 	modal.hide();
-	form.reset();
+	teamUpdateForm.reset();
 	refresh();
 });
 
-document.getElementById('team-delete-form').addEventListener('submit', event => {
+teamDeleteForm.addEventListener('submit', event => {
 	event.preventDefault();
-	const form = event.currentTarget;
-	const team = organization.getTeam(document.getElementById('team-delete-index').value);
-	team.delete();
+	organization = Organization.loadFromLocalStorage();
+	organization.getTeam(teamDeleteIndex.value).delete();
 	organization.saveToLocalStorage();
-	const modal = bootstrap.Modal.getInstance(form);
+	const modal = bootstrap.Modal.getInstance(teamDeleteForm);
 	modal.hide();
-	form.reset();
+	teamDeleteForm.reset();
 	refresh();
 });
 
