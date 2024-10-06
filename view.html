@@ -9,10 +9,22 @@
 	</head>
 	<body class="container d-flex flex-column p-2">
 		<div class="d-flex flex-row justify-content-between align-items-center">
-			<h1 id="title" class="m-2"></h1>
-			<a href="index.html" class="m-2">Αρχική</a>
+			<h1 id="championship-name" class="m-2"></h1>
+			<a href="index.html" class="m-2 btn btn-link">Αρχική</a>
 		</div>
-		<div id="round-list" class="d-flex flex-column"></div>
+		<div class="d-flex flex-row justify-content-between">
+			<h2 id="round-title" class="m-2"></h2>
+			<div class="d-flex flex-row">
+				<button id="contestant-insert-button" class="btn btn-success m-2">Προσθήκη</button>
+				<button id="round-shuffle-button" class="btn btn-secondary m-2">Ανάμιξη</button>
+				<button id="round-backward-button" class="btn btn-danger m-2">Προηγούμενο</button>
+				<button id="round-divide-button" class="btn btn-primary m-2">Επόμενο</button>
+				<button id="round-unite-button" class="btn btn-danger m-2">Προηγούμενο</button>
+				<button id="round-forward-button" class="btn btn-primary m-2">Επόμενο</button>
+			</div>
+		</div>
+		<div id="round-unit-list" class="d-flex flew-row flex-wrap"></div>
+		<div id="round-game-list" class="m-2 list-group"></div>
 		<form id="contestant-insert-form" class="modal">
 			<input type="hidden" id="contestant-insert-unit">
 			<div class="modal-dialog">

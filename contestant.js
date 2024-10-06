@@ -1,35 +1,39 @@
-Array.from(document.getElementsByTagName('select')).forEach(select => {
-	if (!['contestant-insert-team', 'contestant-update-team'].includes(select.id))
-		return;
-	select.appendChild(elem({tag: 'option', value: '', content: textDict.nullOption}));
-	organization.teamList.forEach(team => {
-		select.appendChild(elem({tag: 'option', value: team.index, content: team.getNameWithIndex()}));
-	});
-});
+const contestantList = document.getElementById('contestant-list');
 
-document.getElementById('contestant-groupby').value = organization.contestantGroupBy;
-document.getElementById('contestant-groupby').addEventListener('change', () => {
-	organization.setContestantGroupBy(document.getElementById('contestant-groupby').value);
-	organization.saveToLocalStorage();
-	refresh();
-});
+const contestantGroupBySelect = document.getElementById('contestant-groupby');
+const contestantSortBySelect = document.getElementById('contestant-sortby');
 
-document.getElementById('contestant-sortby').value = organization.contestantSortBy;
-document.getElementById('contestant-sortby').addEventListener('change', () => {
-	organization.setContestantSortBy(document.getElementById('contestant-sortby').value);
-	organization.saveToLocalStorage();
-	refresh();
-});
+const contestantInsertForm = document.getElementById('contestant-insert-form');
+const contestantInsertName = document.getElementById('contestant-insert-name');
+const contestantInsertTeam = document.getElementById('contestant-insert-team');
+
+const contestantUpdateForm = document.getElementById('contestant-update-form');
+const contestantUpdateIndex = document.getElementById('contestant-update-index');
+const contestantUpdateName = document.getElementById('contestant-update-name');
+const contestantUpdateTeam = document.getElementById('contestant-update-team');
+
+const contestantDeleteForm = document.getElementById('contestant-delete-form');
+const contestantDeleteIndex = document.getElementById('contestant-delete-index');
+const contestantDeleteName = document.getElementById('contestant-delete-name');
 
 function refresh() {
-	const contestantListNode = document.getElementById('contestant-list');
-	Array.from(contestantListNode.children).forEach(contestantNode => {
-		contestantNode.remove();
+	[contestantInsertTeam, contestantUpdateTeam].forEach(select => {
+		select.appendChild(elem({tag: 'option', value: '', content: textDict.nullOption}));
+		organization.teamList.forEach(team => {
+			select.appendChild(elem({tag: 'option', value: team.index, content: team.getNameWithIndex()}));
+		});
 	});
-	if (organization.contestantList.length === 0)
-		contestantListNode.appendChild(elem({klass: 'list-group-item list-group-item-warning', content: textDict.emptyList}));
+	contestantGroupBySelect.value = organization.contestantGroupBy;
+	contestantSortBySelect.value = organization.contestantSortBy;
+	contestantList.innerHTML = '';
+	if (organization.contestantList.length === 0) {
+		contestantList.appendChild(elem({
+			klass: 'list-group-item list-group-item-warning',
+			content: textDict.emptyList,
+		}));
+	}
 	organization.sortedContestantList().forEach(contestant => {
-		contestantListNode.appendChild(elem({
+		contestantList.appendChild(elem({
 			klass: 'list-group-item d-flex flex-row justify-content-between p-1',
 			content: [
 				elem({klass: 'm-1', content: contestant.getNameWithTeam()}),
@@ -39,21 +43,19 @@ function refresh() {
 						actionIcon({
 							template: 'edit',
 							click: () => {
-								const form = document.getElementById('contestant-update-form');
-								const modal = bootstrap.Modal.getOrCreateInstance(form);
-								document.getElementById('contestant-update-index').value = contestant.index;
-								document.getElementById('contestant-update-name').value = contestant.name;
-								document.getElementById('contestant-update-team').value = contestant.team?.index ?? '';
+								const modal = bootstrap.Modal.getOrCreateInstance(contestantUpdateForm);
+								contestantUpdateIndex.value = contestant.index;
+								contestantUpdateName.value = contestant.name;
+								contestantUpdateTeam.value = contestant.team?.index ?? '';
 								modal.show();
 							},
 						}),
 						actionIcon({
 							template: 'delete',
 							click: () => {
-								const form = document.getElementById('contestant-delete-form');
-								const modal = bootstrap.Modal.getOrCreateInstance(form);
-								document.getElementById('contestant-delete-index').value = contestant.index;
-								document.getElementById('contestant-delete-name').innerHTML = contestant.name;
+								const modal = bootstrap.Modal.getOrCreateInstance(contestantDeleteForm);
+								contestantDeleteIndex.value = contestant.index;
+								contestantDeleteName.innerHTML = contestant.name;
 								modal.show();
 							},
 						}),
@@ -64,42 +66,56 @@ function refresh() {
 	});
 }
 
-document.getElementById('contestant-insert-form').addEventListener('submit', event => {
+contestantGroupBySelect.addEventListener('change', () => {
+	organization = Organization.loadFromLocalStorage();
+	organization.setContestantGroupBy(contestantGroupBySelect.value);
+	organization.saveToLocalStorage();
+	refresh();
+});
+
+contestantSortBySelect.addEventListener('change', () => {
+	organization = Organization.loadFromLocalStorage();
+	organization.setContestantSortBy(contestantSortBySelect.value);
+	organization.saveToLocalStorage();
+	refresh();
+});
+
+contestantInsertForm.addEventListener('submit', event => {
 	event.preventDefault();
-	const form = event.currentTarget;
-	const name = document.getElementById('contestant-insert-name').value;
-	const team = organization.getTeamOrNull(document.getElementById('contestant-insert-team').value);
+	organization = Organization.loadFromLocalStorage();
+	const name = contestantInsertName.value;
+	const team = organization.getTeamOrNull(contestantInsertTeam.value);
 	organization.appendContestant(name, team);
 	organization.saveToLocalStorage();
-	const modal = bootstrap.Modal.getInstance(form);
+	const modal = bootstrap.Modal.getInstance(contestantInsertForm);
 	modal.hide();
-	form.reset();
+	contestantInsertForm.reset();
 	refresh();
 });
 
-document.getElementById('contestant-update-form').addEventListener('submit', event => {
+contestantUpdateForm.addEventListener('submit', event => {
 	event.preventDefault();
-	const form = event.currentTarget;
-	const contestant = organization.getContestant(document.getElementById('contestant-update-index').value);
-	const name = document.getElementById('contestant-update-name').value;
-	const team = organization.getTeamOrNull(document.getElementById('contestant-update-team').value);
+	organization = Organization.loadFromLocalStorage();
+	const contestant = organization.getContestant(contestantUpdateIndex.value);
+	const name = contestantUpdateName.value;
+	const team = organization.getTeamOrNull(contestantUpdateTeam.value);
 	contestant.update(name, team);
 	organization.saveToLocalStorage();
-	const modal = bootstrap.Modal.getInstance(form);
+	const modal = bootstrap.Modal.getInstance(contestantUpdateForm);
 	modal.hide();
-	form.reset();
+	contestantUpdateForm.reset();
 	refresh();
 });
 
-document.getElementById('contestant-delete-form').addEventListener('submit', event => {
+contestantDeleteForm.addEventListener('submit', event => {
 	event.preventDefault();
-	const form = event.currentTarget;
-	const contestant = organization.getContestant(document.getElementById('contestant-delete-index').value);
+	organization = Organization.loadFromLocalStorage();
+	const contestant = organization.getContestant(contestantDeleteIndex.value);
 	contestant.delete();
 	organization.saveToLocalStorage();
-	const modal = bootstrap.Modal.getInstance(form);
+	const modal = bootstrap.Modal.getInstance(contestantDeleteForm);
 	modal.hide();
-	form.reset();
+	contestantDeleteForm.reset();
 	refresh();
 });
 
