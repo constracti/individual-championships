@@ -19,6 +19,7 @@ const roundForwardButton = document.getElementById('round-forward-button');
 
 const roundUnitList = document.getElementById('round-unit-list');
 const roundGameList = document.getElementById('round-game-list');
+const roundList = document.getElementById('round-list');
 
 /**
  * @param {HTMLElement} node
@@ -96,6 +97,7 @@ function refresh() {
 			],
 		}));
 	});
+
 	roundGameList.innerHTML = '';
 	round.gameList.forEach(game => {
 		roundGameList.appendChild(elem({
@@ -127,7 +129,35 @@ function refresh() {
 		}));
 	});
 
-	// TODO rest rounds
+	roundList.innerHTML = '';
+	round.championship.reversedRoundList().forEach(rnd => {
+		if (rnd.isLast())
+			return;
+		roundList.appendChild(elem({tag: 'h2', klass: 'm-2', content: `Γύρος ${rnd.index + 1}`}));
+		roundList.appendChild(elem({
+			klass: 'm-2 list-group',
+			content: rnd.gameList.map(game => elem({
+				klass: 'list-group-item d-flex flex-row justify-content-center p-2',
+				content: game.unitList.map(unit => elem({
+					klass: 'm-2 border rounded d-flex flex-row p-1' + (unit.pass ? ' border-success-subtle bg-success-subtle' : ''),
+					content: [
+						elem({
+							klass: 'm-1' + (unit.pass ? ' bi-check-lg' : ' bi-x-lg'),
+						}),
+						...unit.contestantList.map(contestant => [
+							elem({
+								klass: 'm-1 border-start' + (unit.pass ? ' border-success-subtle' : ''),
+							}),
+							elem({
+								klass: 'm-1',
+								content: contestant.getNameWithTeam(),
+							}),
+						]).flat(),
+					],
+				})),
+			})),
+		}));
+	});
 
 }
 
