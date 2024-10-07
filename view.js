@@ -36,7 +36,7 @@ function refresh() {
 
 	document.title = [round.championship.name, textDict.siteName].join(textDict.separator);
 	championshipName.innerHTML = round.championship.name;
-	roundTitle.innerHTML = `Γύρος ${round.index + 1}`;
+	roundTitle.innerHTML = round.getTitle();
 
 	contestantInsertTeam.innerHTML = '';
 	contestantInsertTeam.appendChild(elem({tag: 'option', value: '', content: textDict.nullOption}));
@@ -75,6 +75,28 @@ function refresh() {
 						modal.show();
 					},
 				}),
+				actionIcon({
+					template: 'moveup',
+					enabled: !unit.isFirst(),
+					click: () => {
+						organization = Organization.loadFromLocalStorage();
+						round = organization.getChampionship(round.championship.index).getLastRound();
+						round.getUnit(unit.index).moveUp();
+						organization.saveToLocalStorage();
+						refresh();
+					},
+				}),
+				actionIcon({
+					template: 'movedown',
+					enabled: !unit.isLast(),
+					click: () => {
+						organization = Organization.loadFromLocalStorage();
+						round = organization.getChampionship(round.championship.index).getLastRound();
+						round.getUnit(unit.index).moveDown();
+						organization.saveToLocalStorage();
+						refresh();
+					},
+				}),
 				...unit.contestantList.map((contestant, index) => [
 					elem({
 						klass: 'm-1 border-start',
@@ -104,16 +126,16 @@ function refresh() {
 			klass: 'list-group-item d-flex flex-row justify-content-center p-2',
 			content: game.unitList.map(unit => elem({
 				klass: 'm-2 border rounded d-flex flex-row p-1' + (unit.pass ? ' border-success-subtle bg-success-subtle' : ''),
-				click: () => {
-					organization = Organization.loadFromLocalStorage();
-					round = organization.getChampionship(round.championship.index).getLastRound();
-					round.getUnit(unit.index).setPass(!unit.pass);
-					organization.saveToLocalStorage();
-					refresh();
-				},
 				content: [
-					elem({
-						klass: 'm-1' + (unit.pass ? ' bi-check-lg' : ' bi-x-lg'),
+					actionIcon({
+						icon: unit.pass ? 'bi-check-lg' : 'bi-x-lg',
+						click: () => {
+							organization = Organization.loadFromLocalStorage();
+							round = organization.getChampionship(round.championship.index).getLastRound();
+							round.getUnit(unit.index).setPass(!unit.pass);
+							organization.saveToLocalStorage();
+							refresh();
+						},
 					}),
 					...unit.contestantList.map(contestant => [
 						elem({
@@ -133,7 +155,7 @@ function refresh() {
 	round.championship.reversedRoundList().forEach(rnd => {
 		if (rnd.isLast())
 			return;
-		roundList.appendChild(elem({tag: 'h2', klass: 'm-2', content: `Γύρος ${rnd.index + 1}`}));
+		roundList.appendChild(elem({tag: 'h2', klass: 'm-2', content: rnd.getTitle()}));
 		roundList.appendChild(elem({
 			klass: 'm-2 list-group',
 			content: rnd.gameList.map(game => elem({

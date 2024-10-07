@@ -1,4 +1,4 @@
-const VERSION = '0.1';
+const VERSION = '1.0';
 
 
 /**
@@ -61,9 +61,9 @@ class Team {
 	}
 
 	moveUp() {
-		const index = this.index;
-		if (index === 0)
+		if (this.isFirst())
 			throw 'Team::moveUp: team is first';
+		const index = this.index;
 		const other = this.organization.teamList[index - 1];
 		other.index = index;
 		this.index = index - 1;
@@ -72,9 +72,9 @@ class Team {
 	}
 
 	moveDown() {
-		const index = this.index;
-		if (index === this.organization.teamList.length - 1)
+		if (this.isLast())
 			throw 'Team::moveDown: team is last';
+		const index = this.index;
 		const other = this.organization.teamList[index + 1];
 		other.index = index;
 		this.index = index + 1;
@@ -200,7 +200,7 @@ class Contestant {
 	 * @returns {string}
 	 */
 	getNameWithTeam() {
-		return this.name + (this.team !== null ? ` (${this.team.index + 1}η)` : '');
+		return this.name + (this.team !== null ? ` (${this.team.index + 1}${textDict.teamSuffix})` : '');
 	}
 }
 
@@ -399,6 +399,13 @@ class Round {
 	}
 
 	/**
+	 * @returns {string}
+	 */
+	getTitle() {
+		return `${textDict.round} ${this.index + 1}`;
+	}
+
+	/**
 	 * @returns {?Round}
 	 */
 	getPrevious() {
@@ -536,6 +543,28 @@ class Unit {
 		};
 	}
 
+	moveUp() {
+		if (this.isFirst())
+			throw 'Unit::moveUp: unit is first';
+		const index = this.index;
+		const other = this.round.unitList[index - 1];
+		other.index = index;
+		this.index = index - 1;
+		this.round.unitList[index] = other;
+		this.round.unitList[index - 1] = this;
+	}
+
+	moveDown() {
+		if (this.isLast())
+			throw 'Unit::moveDown: unit is last';
+		const index = this.index;
+		const other = this.round.unitList[index + 1];
+		other.index = index;
+		this.index = index + 1;
+		this.round.unitList[index] = other;
+		this.round.unitList[index + 1] = this;
+	}
+
 	delete() {
 		let index = this.index;
 		this.round.unitList.splice(index, 1);
@@ -543,6 +572,20 @@ class Unit {
 			this.round.unitList[index].index--;
 			index++;
 		}
+	}
+
+	/**
+	 * @returns {boolean}
+	 */
+	isFirst() {
+		return this.index === 0;
+	}
+
+	/**
+	 * @returns {boolean}
+	 */
+	isLast() {
+		return this.index === this.round.unitList.length - 1;
 	}
 
 	/**
@@ -951,7 +994,7 @@ function elem(args) {
  * @param {?string} args.color
  * @param {?string} args.icon
  * @param {?boolean} args.enabled
- * @param {?{(): void}} args.click
+ * @param {{(): void}} args.click
  * @returns {HTMLElement}
  */
 function actionIcon(args) {
@@ -989,7 +1032,7 @@ function actionIcon(args) {
 		args.enabled = true;
 	if (args.click === undefined)
 		throw 'actionIcon: args.click';
-	const link = document.createElement('a'); // TODO convert to div.btn
+	const link = document.createElement('a');
 	const color = args.enabled ? args.color : 'link-secondary';
 	link.className = `${args.icon} ${color} m-1`;
 	if (args.enabled)
@@ -1003,6 +1046,22 @@ function actionIcon(args) {
 	return link;
 }
 
+const textDict = {
+	separator: ' | ',
+	siteName: 'Ατομικά Πρωταθλήματα',
+	emptyList: '(Κενή Λίστα)',
+	nullOption: '(Χωρίς Επιλογή)',
+	teamSuffix: 'η',
+	round: 'Γύρος',
+	errorDetails: 'Προέκυψε σφάλμα:',
+	errorMessage: 'Ανανέωσε την σελίδα.',
+};
+
+window.onerror = error => {
+	alert(`${textDict.errorDetails}\n${error}\n\n${textDict.errorMessage}`);
+	return false;
+};
+
 Array.from(document.getElementsByClassName('modal')).forEach(modal => {
 	modal.addEventListener('hide.bs.modal', event => {
 		const form = event.currentTarget;
@@ -1011,16 +1070,4 @@ Array.from(document.getElementsByClassName('modal')).forEach(modal => {
 	});
 });
 
-const textDict = {
-	separator: ' | ',
-	siteName: 'Ατομικά Πρωταθλήματα',
-	emptyList: '(Κενή Λίστα)',
-	nullOption: '(Χωρίς Επιλογή)',
-};
-
 let organization = Organization.loadFromLocalStorage();
-
-// TODO undo and redo functionality
-// TODO display app version in the import modal
-// TODO inform on error
-// TODO keep non-ascii characters in html files and textDict

@@ -16,6 +16,8 @@ const importTextarea = document.getElementById('import-textarea');
 
 const exportTextarea = document.getElementById('export-textarea');
 
+document.getElementById('version').innerHTML = VERSION;
+
 function refresh() {
 	championshipList.innerHTML = '';
 	if (organization.championshipList.length === 0) {
