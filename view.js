@@ -14,6 +14,7 @@ const contestantInsertSelect = document.getElementById('contestant-insert-select
 const roundShuffleButton = document.getElementById('round-shuffle-button');
 const roundBackwardButton = document.getElementById('round-backward-button');
 const roundDivideButton = document.getElementById('round-divide-button');
+const roundPrintButton = document.getElementById('round-print-button');
 const roundUniteButton = document.getElementById('round-unite-button');
 const roundForwardButton = document.getElementById('round-forward-button');
 
@@ -50,11 +51,14 @@ function refresh() {
 	nodeShowOn(roundBackwardButton, round.gameList.length === 0 && !round.isFirst());
 	nodeShowOn(roundDivideButton, round.gameList.length === 0 && round.unitList.length > 1);
 
+	nodeShowOn(roundPrintButton, round.gameList.length !== 0);
 	nodeShowOn(roundUniteButton, round.gameList.length !== 0);
 	nodeShowOn(roundForwardButton, round.gameList.length !== 0);
 
 	nodeShowOn(roundUnitList, round.gameList.length === 0);
 	nodeShowOn(roundGameList, round.gameList.length !== 0);
+
+	roundPrintButton.href = 'print.html' + window.location.search;
 
 	roundUnitList.innerHTML = '';
 	if (round.unitList.length === 0) {
