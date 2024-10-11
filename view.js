@@ -73,6 +73,7 @@ function refresh() {
 			content: [
 				actionIcon({
 					template: 'add',
+					enabled: unit.contestantList.length < unit.round.championship.unitCap,
 					click: () => {
 						contestantInsertUnit.value = unit.index;
 						const modal = bootstrap.Modal.getOrCreateInstance(contestantInsertForm);
@@ -250,12 +251,13 @@ roundDivideButton.addEventListener('click', event => {
 	event.preventDefault();
 	organization = Organization.loadFromLocalStorage();
 	round = organization.getChampionship(round.championship.index).getLastRound();
+	// TODO fairly select lucky unit
 	let game = null;
 	for (let unit of round.unitList) {
 		if (game === null)
 			game = round.appendGame();
 		game.appendUnit(unit);
-		if (game.unitList.length === 2)
+		if (game.unitList.length === round.championship.gameCap)
 			game = null;
 	}
 	organization.saveToLocalStorage();

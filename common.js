@@ -1,4 +1,4 @@
-const VERSION = '1.0';
+const VERSION = '1.1';
 
 
 /**
@@ -208,6 +208,8 @@ class Contestant {
 /**
  * @typedef {Object} ChampionshipObj
  * @property {string} name
+ * @property {number} unitCap
+ * @property {number} gameCap
  * @property {RoundObj[]} roundList
  */
 
@@ -224,6 +226,16 @@ class Championship {
 	name;
 
 	/**
+	 * @type {number}
+	 */
+	unitCap;
+
+	/**
+	 * @type {number}
+	 */
+	gameCap;
+
+	/**
 	 * @type {Round[]}
 	 */
 	roundList = [];
@@ -236,11 +248,15 @@ class Championship {
 	/**
 	 * @param {number} index
 	 * @param {string} name
+	 * @param {number} unitCap
+	 * @param {number} gameCap
 	 * @param {Organization} organization
 	 */
-	constructor(index, name, organization) {
+	constructor(index, name, unitCap, gameCap, organization) {
 		this.index = index;
 		this.name = name;
+		this.unitCap = unitCap;
+		this.gameCap = gameCap;
 		this.organization = organization;
 	}
 
@@ -249,7 +265,7 @@ class Championship {
 	 * @param {Organization} organization
 	 */
 	static parse(obj, organization) {
-		const championship = organization.appendChampionship(obj.name, false);
+		const championship = organization.appendChampionship(obj.name, obj.unitCap, obj.gameCap);
 		obj.roundList.forEach(round => Round.parse(round, championship));
 	}
 
@@ -259,15 +275,21 @@ class Championship {
 	build() {
 		return {
 			name: this.name,
+			unitCap: this.unitCap,
+			gameCap: this.gameCap,
 			roundList: this.roundList.map(round => round.build()),
 		};
 	}
 
 	/**
 	 * @param {string} name
+	 * @param {number} unitCap
+	 * @param {number} gameCap
 	 */
-	update(name) {
+	update(name, unitCap, gameCap) {
 		this.name = name;
+		this.unitCap = unitCap;
+		this.gameCap = gameCap;
 	}
 
 	delete() {
@@ -916,10 +938,14 @@ class Organization {
 
 	/**
 	 * @param {string} name
+	 * @param {number} unitCap
+	 * @param {number} gameCap
 	 * @returns {Championship}
 	 */
-	appendChampionship(name) {
-		const championship = new Championship(this.championshipList.length, name, this);
+	appendChampionship(name, unitCap, gameCap) {
+		const championship = new Championship(
+			this.championshipList.length, name, unitCap, gameCap, this
+		);
 		this.championshipList.push(championship);
 		return championship;
 	}

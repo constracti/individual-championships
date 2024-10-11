@@ -2,10 +2,14 @@ const championshipList = document.getElementById('championship-list');
 
 const championshipInsertForm = document.getElementById('championship-insert-form');
 const championshipInsertName = document.getElementById('championship-insert-name');
+const championshipInsertUnitCap = document.getElementById('championship-insert-unit-cap');
+const championshipInsertGameCap = document.getElementById('championship-insert-game-cap');
 
 const championshipUpdateForm = document.getElementById('championship-update-form');
 const championshipUpdateIndex = document.getElementById('championship-update-index');
 const championshipUpdateName = document.getElementById('championship-update-name');
+const championshipUpdateUnitCap = document.getElementById('championship-update-unit-cap');
+const championshipUpdateGameCap = document.getElementById('championship-update-game-cap');
 
 const championshipDeleteForm = document.getElementById('championship-delete-form');
 const championshipDeleteIndex = document.getElementById('championship-delete-index');
@@ -45,6 +49,8 @@ function refresh() {
 								const modal = bootstrap.Modal.getOrCreateInstance(championshipUpdateForm);
 								championshipUpdateIndex.value = championship.index;
 								championshipUpdateName.value = championship.name;
+								championshipUpdateUnitCap.value = championship.unitCap;
+								championshipUpdateGameCap.value = championship.gameCap;
 								modal.show();
 							},
 						}),
@@ -68,7 +74,11 @@ function refresh() {
 championshipInsertForm.addEventListener('submit', event => {
 	event.preventDefault();
 	organization = Organization.loadFromLocalStorage();
-	const championship = organization.appendChampionship(championshipInsertName.value);
+	const championship = organization.appendChampionship(
+		championshipInsertName.value,
+		parseInt(championshipInsertUnitCap.value),
+		parseInt(championshipInsertGameCap.value),
+	);
 	championship.appendRound();
 	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(championshipInsertForm);
@@ -80,7 +90,11 @@ championshipInsertForm.addEventListener('submit', event => {
 championshipUpdateForm.addEventListener('submit', event => {
 	event.preventDefault();
 	organization = Organization.loadFromLocalStorage();
-	organization.getChampionship(championshipUpdateIndex.value).update(championshipUpdateName.value);
+	organization.getChampionship(championshipUpdateIndex.value).update(
+		championshipUpdateName.value,
+		parseInt(championshipUpdateUnitCap.value),
+		parseInt(championshipUpdateGameCap.value),
+	);
 	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(championshipUpdateForm);
 	modal.hide();
