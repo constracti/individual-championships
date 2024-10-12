@@ -1,4 +1,4 @@
-const VERSION = '1.1';
+const VERSION = '1.1.1';
 
 
 /**
@@ -164,7 +164,7 @@ class Contestant {
 	 * @param {Organization} organization
 	 */
 	static parse(obj, organization) {
-		organization.appendContestant(obj.name, organization.getTeam(obj.team));
+		organization.appendContestant(obj.name, organization.getTeamOrNull(obj.team));
 	}
 
 	/**
@@ -194,6 +194,13 @@ class Contestant {
 			this.organization.contestantList[index].index--;
 			index++;
 		}
+		this.organization.championshipList.forEach(championship => {
+			championship.roundList.forEach(round => {
+				round.unitList.forEach(unit => {
+					unit.contestantList = unit.contestantList.filter(contestant => contestant !== this);
+				});
+			});
+		});
 	}
 
 	/**
