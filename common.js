@@ -1,4 +1,287 @@
-const VERSION = '1.1.1';
+const VERSION = '1.2.0';
+
+
+/**
+ * @typedef {Object} OrganizationObj
+ * @property {TeamObj[]} teamList
+ * @property {ContestantObj[]} contestantList
+ * @property {ChampionshipObj[]} championshipList
+ * @property {?string} contestantGroupBy
+ * @property {?string} contestantSortBy
+ * @property {?string} version
+ */
+
+class Organization {
+
+	/**
+	 * @type {string}
+	 */
+	static key = 'individual-championships';
+
+	/**
+	 * @type {Team[]}
+	 */
+	teamList = [];
+
+	/**
+	 * @type {Contestant[]}
+	 */
+	contestantList = [];
+
+	/**
+	 * @type {Championship[]}
+	 */
+	championshipList = [];
+
+	/**
+	 * @constant
+	 * @type {string}
+	 */
+	static CONTESTANT_GROUP_BY = 'unified';
+
+	/**
+	 * @type {string}
+	 */
+	contestantGroupBy = Organization.CONTESTANT_GROUP_BY;
+
+	/**
+	 * @constant
+	 * @type {string}
+	 */
+	static CONTESTANT_SORT_BY = 'index';
+
+	/**
+	 * @type {string}
+	 */
+	contestantSortBy = Organization.CONTESTANT_SORT_BY;
+
+	/**
+	 * @type {string}
+	 */
+	version = VERSION;
+
+	constructor() {}
+
+	/**
+	 * @param {OrganizationObj} obj
+	 */
+	parse(obj) {
+		obj.teamList.forEach(team => Team.parse(team, this));
+		obj.contestantList.forEach(contestant => Contestant.parse(contestant, this));
+		obj.championshipList.forEach(championship => Championship.parse(championship, this));
+		this.setContestantGroupBy(obj.contestantGroupBy ?? Organization.CONTESTANT_GROUP_BY);
+		this.setContestantSortBy(obj.contestantSortBy ?? Organization.CONTESTANT_SORT_BY);
+	}
+
+	/**
+	 * @returns {OrganizationObj}
+	 */
+	build() {
+		return {
+			teamList: this.teamList.map(team => team.build()),
+			contestantList: this.contestantList.map(contestant => contestant.build()),
+			championshipList: this.championshipList.map(championship => championship.build()),
+			contestantGroupBy: this.contestantGroupBy,
+			contestantSortBy: this.contestantSortBy,
+			version: this.version,
+		};
+	}
+
+	/**
+	 * Build an Organization from a JSON string.
+	 * @param {?string} json
+	 * @returns {Organization}
+	 */
+	static fromJSON(json) {
+		const organization = new Organization();
+		if (json !== null)
+			organization.parse(JSON.parse(json));
+		return organization;
+	}
+
+	/**
+	 * Serialize the Organization to a JSON string.
+	 * @param {boolean} [pretty=false]
+	 * @returns {string}
+	 */
+	toJSON(pretty) {
+		const json = JSON.stringify(this.build(), null, (pretty ?? false) ? '\t' : null);
+		return json;
+	}
+
+	/**
+	 * Load an Organization from the Local Storage.
+	 * @returns {Organization}
+	 */
+	static loadFromLocalStorage() {
+		return Organization.fromJSON(localStorage.getItem(Organization.key));
+	}
+
+	/**
+	 * Save the Organization to the Local Storage.
+	 */
+	saveToLocalStorage() {
+		localStorage.setItem(Organization.key, this.toJSON());
+	}
+
+	/**
+	 * @param {number|string|null} index
+	 * @returns {?Team}
+	 */
+	getTeamOrNull(index) {
+		if (index === null || index === '')
+			return null;
+		if (typeof(index) === 'string')
+			index = parseInt(index);
+		return this.teamList[index] ?? null;
+	}
+
+	/**
+	 * @param {number|string|null} index
+	 * @returns {Team}
+	 */
+	getTeam(index) {
+		const team = this.getTeamOrNull(index);
+		if (team === null)
+			throw 'Organization::getTeam: invalid index';
+		return team;
+	}
+
+	/**
+	 * @param {string} name
+	 */
+	appendTeam(name) {
+		const team = new Team(this.teamList.length, name, this);
+		this.teamList.push(team);
+	}
+
+	/**
+	 * @param {number|string|null} index
+	 * @returns {?Contestant}
+	 */
+	getContestantOrNull(index) {
+		if (index === null || index === '')
+			return null;
+		if (typeof(index) === 'string')
+			index = parseInt(index);
+		return this.contestantList[index] ?? null;
+	}
+
+	/**
+	 * @param {number|string|null} index
+	 * @returns {Contestant}
+	 */
+	getContestant(index) {
+		const contestant = this.getContestantOrNull(index);
+		if (contestant === null)
+			throw 'Organization::getContestant: invalid index';
+		return contestant;
+	}
+
+	/**
+	 * @param {string} name
+	 * @param {?Team} team
+	 */
+	appendContestant(name, team) {
+		const contestant = new Contestant(this.contestantList.length, name, team, this);
+		this.contestantList.push(contestant);
+	}
+
+	/**
+	 * @param {string} groupby
+	 */
+	setContestantGroupBy(groupby) {
+		this.contestantGroupBy = groupby;
+	}
+
+	/**
+	 * @param {string} sortby
+	 */
+	setContestantSortBy(sortby) {
+		this.contestantSortBy = sortby;
+	}
+
+	/**
+	 * @param {Contestant} contestant1
+	 * @param {Contestant} contestant2
+	 * @returns {number}
+	 */
+	compareContestantPair(contestant1, contestant2) {
+		if (this.contestantGroupBy === 'teamwise') {
+			const team1 = contestant1.team?.index ?? -1;
+			const team2 = contestant2.team?.index ?? -1;
+			const cmp = team1 - team2;
+			if (cmp)
+				return cmp;
+		}
+		if (this.contestantSortBy === 'name') {
+			const cmp = contestant1.name.localeCompare(contestant2.name);
+			if (cmp)
+				return cmp;
+		}
+		return 0;
+	}
+
+	/**
+	 * @returns {Contestant[]}
+	 */
+	sortedContestantList() {
+		return this.contestantList.toSorted(this.compareContestantPair.bind(this));
+	}
+
+	/**
+	 * @param {number|string|null} index
+	 * @returns {?Championship}
+	 */
+	getChampionshipOrNull(index) {
+		if (index === null || index === '')
+			return null;
+		if (typeof(index) === 'string')
+			index = parseInt(index);
+		return this.championshipList[index] ?? null;
+	}
+
+	/**
+	 * @param {number|string|null} index
+	 * @returns {Championship}
+	 */
+	getChampionship(index) {
+		const championship = this.getChampionshipOrNull(index);
+		if (championship === null)
+			throw 'Organization::getChampionship: invalid index';
+		return championship;
+	}
+
+	/**
+	 * @param {string} name
+	 * @param {number} unitCap
+	 * @param {number} gameCap
+	 * @returns {Championship}
+	 */
+	appendChampionship(name, unitCap, gameCap) {
+		const championship = new Championship(
+			this.championshipList.length, name, unitCap, gameCap, this
+		);
+		this.championshipList.push(championship);
+		return championship;
+	}
+
+	/**
+	 * @param {Championship} championship1
+	 * @param {Championship} championship2
+	 * @returns {number}
+	 */
+	compareChampionshipPair(championship1, championship2) {
+		return championship1.name.localeCompare(championship2.name);
+	}
+
+	/**
+	 * @returns {Championship[]}
+	 */
+	sortedChampionshipList() {
+		return this.championshipList.toSorted(this.compareChampionshipPair.bind(this));
+	}
+}
 
 
 /**
@@ -688,289 +971,6 @@ class Game {
 	 */
 	appendUnit(unit) {
 		this.unitList.push(unit);
-	}
-}
-
-
-/**
- * @typedef {Object} OrganizationObj
- * @property {TeamObj[]} teamList
- * @property {ContestantObj[]} contestantList
- * @property {ChampionshipObj[]} championshipList
- * @property {?string} contestantGroupBy
- * @property {?string} contestantSortBy
- * @property {?string} version
- */
-
-class Organization {
-
-	/**
-	 * @type {string}
-	 */
-	static key = 'individual-championships';
-
-	/**
-	 * @type {Team[]}
-	 */
-	teamList = [];
-
-	/**
-	 * @type {Contestant[]}
-	 */
-	contestantList = [];
-
-	/**
-	 * @type {Championship[]}
-	 */
-	championshipList = [];
-
-	/**
-	 * @constant
-	 * @type {string}
-	 */
-	static CONTESTANT_GROUP_BY = 'unified';
-
-	/**
-	 * @type {string}
-	 */
-	contestantGroupBy = Organization.CONTESTANT_GROUP_BY;
-
-	/**
-	 * @constant
-	 * @type {string}
-	 */
-	static CONTESTANT_SORT_BY = 'index';
-
-	/**
-	 * @type {string}
-	 */
-	contestantSortBy = Organization.CONTESTANT_SORT_BY;
-
-	/**
-	 * @type {string}
-	 */
-	version = VERSION;
-
-	constructor() {}
-
-	/**
-	 * @param {OrganizationObj} obj
-	 */
-	parse(obj) {
-		obj.teamList.forEach(team => Team.parse(team, this));
-		obj.contestantList.forEach(contestant => Contestant.parse(contestant, this));
-		obj.championshipList.forEach(championship => Championship.parse(championship, this));
-		this.setContestantGroupBy(obj.contestantGroupBy ?? Organization.CONTESTANT_GROUP_BY);
-		this.setContestantSortBy(obj.contestantSortBy ?? Organization.CONTESTANT_SORT_BY);
-	}
-
-	/**
-	 * @returns {OrganizationObj}
-	 */
-	build() {
-		return {
-			teamList: this.teamList.map(team => team.build()),
-			contestantList: this.contestantList.map(contestant => contestant.build()),
-			championshipList: this.championshipList.map(championship => championship.build()),
-			contestantGroupBy: this.contestantGroupBy,
-			contestantSortBy: this.contestantSortBy,
-			version: this.version,
-		};
-	}
-
-	/**
-	 * Build an Organization from a JSON string.
-	 * @param {?string} json
-	 * @returns {Organization}
-	 */
-	static fromJSON(json) {
-		const organization = new Organization();
-		if (json !== null)
-			organization.parse(JSON.parse(json));
-		return organization;
-	}
-
-	/**
-	 * Serialize the Organization to a JSON string.
-	 * @param {boolean} [pretty=false]
-	 * @returns {string}
-	 */
-	toJSON(pretty) {
-		const json = JSON.stringify(this.build(), null, (pretty ?? false) ? '\t' : null);
-		return json;
-	}
-
-	/**
-	 * Load an Organization from the Local Storage.
-	 * @returns {Organization}
-	 */
-	static loadFromLocalStorage() {
-		return Organization.fromJSON(localStorage.getItem(Organization.key));
-	}
-
-	/**
-	 * Save the Organization to the Local Storage.
-	 */
-	saveToLocalStorage() {
-		localStorage.setItem(Organization.key, this.toJSON());
-	}
-
-	/**
-	 * @param {number|string|null} index
-	 * @returns {?Team}
-	 */
-	getTeamOrNull(index) {
-		if (index === null || index === '')
-			return null;
-		if (typeof(index) === 'string')
-			index = parseInt(index);
-		return this.teamList[index] ?? null;
-	}
-
-	/**
-	 * @param {number|string|null} index
-	 * @returns {Team}
-	 */
-	getTeam(index) {
-		const team = this.getTeamOrNull(index);
-		if (team === null)
-			throw 'Organization::getTeam: invalid index';
-		return team;
-	}
-
-	/**
-	 * @param {string} name
-	 */
-	appendTeam(name) {
-		const team = new Team(this.teamList.length, name, this);
-		this.teamList.push(team);
-	}
-
-	/**
-	 * @param {number|string|null} index
-	 * @returns {?Contestant}
-	 */
-	getContestantOrNull(index) {
-		if (index === null || index === '')
-			return null;
-		if (typeof(index) === 'string')
-			index = parseInt(index);
-		return this.contestantList[index] ?? null;
-	}
-
-	/**
-	 * @param {number|string|null} index
-	 * @returns {Contestant}
-	 */
-	getContestant(index) {
-		const contestant = this.getContestantOrNull(index);
-		if (contestant === null)
-			throw 'Organization::getContestant: invalid index';
-		return contestant;
-	}
-
-	/**
-	 * @param {string} name
-	 * @param {?Team} team
-	 */
-	appendContestant(name, team) {
-		const contestant = new Contestant(this.contestantList.length, name, team, this);
-		this.contestantList.push(contestant);
-	}
-
-	/**
-	 * @param {string} groupby
-	 */
-	setContestantGroupBy(groupby) {
-		this.contestantGroupBy = groupby;
-	}
-
-	/**
-	 * @param {string} sortby
-	 */
-	setContestantSortBy(sortby) {
-		this.contestantSortBy = sortby;
-	}
-
-	/**
-	 * @param {Contestant} contestant1
-	 * @param {Contestant} contestant2
-	 * @returns {number}
-	 */
-	compareContestantPair(contestant1, contestant2) {
-		if (this.contestantGroupBy === 'teamwise') {
-			const team1 = contestant1.team?.index ?? -1;
-			const team2 = contestant2.team?.index ?? -1;
-			const cmp = team1 - team2;
-			if (cmp)
-				return cmp;
-		}
-		if (this.contestantSortBy === 'name') {
-			const cmp = contestant1.name.localeCompare(contestant2.name);
-			if (cmp)
-				return cmp;
-		}
-		return 0;
-	}
-
-	/**
-	 * @returns {Contestant[]}
-	 */
-	sortedContestantList() {
-		return this.contestantList.toSorted(this.compareContestantPair.bind(this));
-	}
-
-	/**
-	 * @param {number|string|null} index
-	 * @returns {?Championship}
-	 */
-	getChampionshipOrNull(index) {
-		if (index === null || index === '')
-			return null;
-		if (typeof(index) === 'string')
-			index = parseInt(index);
-		return this.championshipList[index] ?? null;
-	}
-
-	/**
-	 * @param {number|string|null} index
-	 * @returns {Championship}
-	 */
-	getChampionship(index) {
-		const championship = this.getChampionshipOrNull(index);
-		if (championship === null)
-			throw 'Organization::getChampionship: invalid index';
-		return championship;
-	}
-
-	/**
-	 * @param {string} name
-	 * @param {number} unitCap
-	 * @param {number} gameCap
-	 * @returns {Championship}
-	 */
-	appendChampionship(name, unitCap, gameCap) {
-		const championship = new Championship(
-			this.championshipList.length, name, unitCap, gameCap, this
-		);
-		this.championshipList.push(championship);
-		return championship;
-	}
-
-	/**
-	 * @param {Championship} championship1
-	 * @param {Championship} championship2
-	 * @returns {number}
-	 */
-	compareChampionshipPair(championship1, championship2) {
-		return championship1.name.localeCompare(championship2.name);
-	}
-
-	/**
-	 * @returns {Championship[]}
-	 */
-	sortedChampionshipList() {
-		return this.championshipList.toSorted(this.compareChampionshipPair.bind(this));
 	}
 }
 
