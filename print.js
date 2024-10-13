@@ -13,9 +13,13 @@ roundTitle.innerHTML = round.getTitle();
 round.gameList.forEach(game => {
 	roundGameList.appendChild(elem({
 		klass: 'm-2 text-center',
-		content: game.unitList.map(unit =>
-			unit.contestantList.map(contestant => contestant.getNameWithTeam()).join(', ')
-		).join(' - '),
+		content: game.unitList.map(unit => {
+			const qualify = unit.contestantList.length === 1 ?
+				textDict.qualifySingular :
+				textDict.qualifyPlural;
+			return unit.contestantList.map(contestant => contestant.getNameWithTeam()).join(', ') +
+				(unit.pass ?  ' ' + qualify : '');
+		}).join(' - '),
 	}));
 });
 

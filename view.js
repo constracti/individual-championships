@@ -5,13 +5,11 @@ let round = organization.getChampionship(params.get('championship')).getLastRoun
 const championshipName = document.getElementById('championship-name');
 const roundTitle = document.getElementById('round-title');
 
-const contestantInsertButton = document.getElementById('contestant-insert-button');
 const contestantInsertForm = document.getElementById('contestant-insert-form');
 const contestantInsertUnit = document.getElementById('contestant-insert-unit');
 const contestantInsertTeam = document.getElementById('contestant-insert-team');
 const contestantInsertSelect = document.getElementById('contestant-insert-select');
 
-const roundShuffleButton = document.getElementById('round-shuffle-button');
 const roundBackwardButton = document.getElementById('round-backward-button');
 const roundDivideButton = document.getElementById('round-divide-button');
 const roundPrintButton = document.getElementById('round-print-button');
@@ -46,8 +44,6 @@ function refresh() {
 	});
 	refreshContestantInsertSelect();
 
-	nodeShowOn(contestantInsertButton, round.gameList.length === 0);
-	nodeShowOn(roundShuffleButton, round.gameList.length === 0 && round.unitList.length > 1);
 	nodeShowOn(roundBackwardButton, round.gameList.length === 0 && !round.isFirst());
 	nodeShowOn(roundDivideButton, round.gameList.length === 0 && round.unitList.length > 1);
 
@@ -80,28 +76,6 @@ function refresh() {
 						modal.show();
 					},
 				}),
-				actionIcon({
-					template: 'moveup',
-					enabled: !unit.isFirst(),
-					click: () => {
-						organization = Organization.loadFromLocalStorage();
-						round = organization.getChampionship(round.championship.index).getLastRound();
-						round.getUnit(unit.index).moveUp();
-						organization.saveToLocalStorage();
-						refresh();
-					},
-				}),
-				actionIcon({
-					template: 'movedown',
-					enabled: !unit.isLast(),
-					click: () => {
-						organization = Organization.loadFromLocalStorage();
-						round = organization.getChampionship(round.championship.index).getLastRound();
-						round.getUnit(unit.index).moveDown();
-						organization.saveToLocalStorage();
-						refresh();
-					},
-				}),
 				...unit.contestantList.map((contestant, index) => [
 					elem({
 						klass: 'm-1 border-start',
@@ -124,6 +98,19 @@ function refresh() {
 			],
 		}));
 	});
+	roundUnitList.appendChild(elem({
+		klass: 'm-2 border rounded d-flex flex-row align-items-center p-1',
+		content: [
+			actionIcon({
+				template: 'add',
+				click: () => {
+					contestantInsertUnit.value = '';
+					const modal = bootstrap.Modal.getOrCreateInstance(contestantInsertForm);
+					modal.show();
+				},
+			}),
+		],
+	}));
 
 	roundGameList.innerHTML = '';
 	round.gameList.forEach(game => {
@@ -207,13 +194,6 @@ function refreshContestantInsertSelect() {
 
 contestantInsertTeam.addEventListener('change', refreshContestantInsertSelect);
 
-contestantInsertButton.addEventListener('click', event => {
-	event.preventDefault();
-	contestantInsertUnit.value = '';
-	const modal = bootstrap.Modal.getOrCreateInstance(contestantInsertForm);
-	modal.show();
-});
-
 contestantInsertForm.addEventListener('submit', event => {
 	event.preventDefault();
 	organization = Organization.loadFromLocalStorage();
@@ -228,15 +208,6 @@ contestantInsertForm.addEventListener('submit', event => {
 	refresh();
 });
 
-roundShuffleButton.addEventListener('click', event => {
-	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
-	round = organization.getChampionship(round.championship.index).getLastRound();
-	round.shuffleUnitList();
-	organization.saveToLocalStorage();
-	refresh();
-});
-
 roundBackwardButton.addEventListener('click', event => {
 	event.preventDefault();
 	organization = Organization.loadFromLocalStorage();
@@ -248,17 +219,68 @@ roundBackwardButton.addEventListener('click', event => {
 });
 
 roundDivideButton.addEventListener('click', event => {
+	// TODO game formation strategy (early fill tree, early fill games)
+	// TODO create games with decreased capacity
+	// TODO add and move units in game state
 	event.preventDefault();
 	organization = Organization.loadFromLocalStorage();
 	round = organization.getChampionship(round.championship.index).getLastRound();
-	// TODO fairly select lucky unit
-	let game = null;
-	for (let unit of round.unitList) {
-		if (game === null)
+	if (round.championship.gameCap > 1) {
+		// fairly select lucky units
+		const unitList = [...round.unitList].map(unit => {
+			const root = unit;
+			let prob = 1.0;
+			while (unit.parent !== null) {
+				unit = unit.parent;
+				unit.round.gameList.forEach(game => {
+					if (!game.unitList.includes(unit))
+						return;
+					prob *= game.unitList.filter(unit => unit.pass).length / game.unitList.length;
+				});
+			}
+			return {
+				unit: root,
+				prob: Math.log(prob),
+				seed: Math.random(),
+			};
+		}).sort((u1, u2) => {
+			if (u1.prob !== u2.prob)
+				return u2.prob - u1.prob; // sort by prob descending
+			return u1.seed - u2.seed; // sort by seed ascending
+		}).map(tuple => tuple.unit);
+		// early fill tree
+		const count = round.unitList.length;
+		const base = round.championship.gameCap;
+		const order = Math.ceil(Math.log(count) / Math.log(base));
+		const power = Math.pow(base, order);
+		const lucky = Math.floor((power - count) / (base - 1));
+		const full = Math.floor((count - lucky) / base) * base;
+		let game = null;
+		for (let unit of shuffle(unitList.slice(0, full))) {
+			if (game === null)
+				game = round.appendGame();
+			game.appendUnit(unit);
+			if (game.unitList.length === base)
+				game = null;
+		}
+		for (let unit of shuffle(unitList.slice(full, count - lucky))) {
+			if (game === null)
+				game = round.appendGame();
+			game.appendUnit(unit);
+			if (game.unitList.length === base)
+				game = null;
+		}
+		for (let unit of unitList.slice(count - lucky)) {
 			game = round.appendGame();
-		game.appendUnit(unit);
-		if (game.unitList.length === round.championship.gameCap)
+			game.appendUnit(unit);
+			unit.setPass(true);
 			game = null;
+		}
+	} else {
+		shuffle(round.unitList).forEach(unit => {
+			const game = round.appendGame();
+			game.appendUnit(unit);
+		});
 	}
 	organization.saveToLocalStorage();
 	refresh();

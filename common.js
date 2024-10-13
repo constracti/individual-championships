@@ -1,4 +1,4 @@
-const VERSION = '1.2.0';
+const VERSION = '1.2.1';
 
 
 /**
@@ -760,22 +760,6 @@ class Round {
 	}
 
 	/**
-	 * Fisher-Yates shuffle
-	 */
-	shuffleUnitList() {
-		let curr = this.unitList.length;
-		while (curr !== 0) {
-			const rand = Math.floor(Math.random() * curr);
-			curr--;
-			const temp = this.unitList[curr];
-			this.unitList[curr] = this.unitList[rand];
-			this.unitList[rand] = temp;
-		}
-		for (curr = 0; curr < this.unitList.length; curr++)
-			this.unitList[curr].index = curr;
-	}
-
-	/**
 	 * @returns {Game}
 	 */
 	appendGame() {
@@ -853,28 +837,6 @@ class Unit {
 			pass: this.pass,
 			parent: this.parent?.index ?? null,
 		};
-	}
-
-	moveUp() {
-		if (this.isFirst())
-			throw 'Unit::moveUp: unit is first';
-		const index = this.index;
-		const other = this.round.unitList[index - 1];
-		other.index = index;
-		this.index = index - 1;
-		this.round.unitList[index] = other;
-		this.round.unitList[index - 1] = this;
-	}
-
-	moveDown() {
-		if (this.isLast())
-			throw 'Unit::moveDown: unit is last';
-		const index = this.index;
-		const other = this.round.unitList[index + 1];
-		other.index = index;
-		this.index = index + 1;
-		this.round.unitList[index] = other;
-		this.round.unitList[index + 1] = this;
 	}
 
 	delete() {
@@ -1079,6 +1041,23 @@ function actionIcon(args) {
 	return link;
 }
 
+/**
+ * @template T
+ * @param {T[]} array
+ * @returns {T[]}
+ */
+function shuffle(array) {
+	let curr = array.length;
+	while (curr !== 0) {
+		const rand = Math.floor(Math.random() * curr);
+		curr--;
+		const temp = array[curr];
+		array[curr] = array[rand];
+		array[rand] = temp;
+	}
+	return array;
+}
+
 const textDict = {
 	separator: ' | ',
 	siteName: 'Ατομικά Πρωταθλήματα',
@@ -1086,6 +1065,8 @@ const textDict = {
 	nullOption: '(Χωρίς Επιλογή)',
 	teamSuffix: 'η',
 	round: 'Γύρος',
+	qualifySingular: '(Προκρίνεται)',
+	qualifyPlural: '(Προκρίνονται)',
 	errorDetails: 'Προέκυψε σφάλμα:',
 	errorMessage: 'Ανανέωσε την σελίδα.',
 };
