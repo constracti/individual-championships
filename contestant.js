@@ -18,6 +18,7 @@ const contestantDeleteName = document.getElementById('contestant-delete-name');
 
 function refresh() {
 	[contestantInsertTeam, contestantUpdateTeam].forEach(select => {
+		select.innerHTML = '';
 		select.appendChild(elem({tag: 'option', value: '', content: textDict.nullOption}));
 		organization.teamList.forEach(team => {
 			select.appendChild(elem({tag: 'option', value: team.index, content: team.getNameWithIndex()}));

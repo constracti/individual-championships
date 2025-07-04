@@ -15,6 +15,9 @@ const championshipDeleteForm = document.getElementById('championship-delete-form
 const championshipDeleteIndex = document.getElementById('championship-delete-index');
 const championshipDeleteName = document.getElementById('championship-delete-name');
 
+const createForm = document.getElementById('create-form');
+const createTextarea = document.getElementById('create-textarea');
+
 const importForm = document.getElementById('import-form');
 const importTextarea = document.getElementById('import-textarea');
 
@@ -110,6 +113,16 @@ championshipDeleteForm.addEventListener('submit', event => {
 	const modal = bootstrap.Modal.getInstance(championshipDeleteForm);
 	modal.hide();
 	championshipDeleteForm.reset();
+	refresh();
+});
+
+createForm.addEventListener('submit', event => {
+	event.preventDefault();
+	organization = Organization.fromTXT(createTextarea.value);
+	organization.saveToLocalStorage();
+	const modal = bootstrap.Modal.getInstance(createForm);
+	modal.hide();
+	createForm.reset();
 	refresh();
 });
 

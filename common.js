@@ -1,4 +1,4 @@
-const VERSION = '1.2.1';
+const VERSION = '1.3.0';
 
 
 /**
@@ -88,6 +88,29 @@ class Organization {
 	}
 
 	/**
+	 * Build an Organization from a TXT string.
+	 * @param {string} txt
+	 * @returns {Organization}
+	 */
+	static fromTXT(txt) {
+		const organization = new Organization();
+		var team = null;
+		for (var line of txt.split('\n')) {
+			line = line.replace(/\s+/g, ' ').trim();
+			if (line.length === 0 || line.startsWith('%'))
+				continue;
+			if (line.startsWith('#')) {
+				line = line.substring(1).trimStart();
+				team = organization.appendTeam(line);
+			} else {
+				organization.appendContestant(line, team);
+			}
+		}
+		organization
+		return organization;
+	}
+
+	/**
 	 * Build an Organization from a JSON string.
 	 * @param {?string} json
 	 * @returns {Organization}
@@ -149,10 +172,12 @@ class Organization {
 
 	/**
 	 * @param {string} name
+	 * @returns {Team}
 	 */
 	appendTeam(name) {
 		const team = new Team(this.teamList.length, name, this);
 		this.teamList.push(team);
+		return team;
 	}
 
 	/**
@@ -181,10 +206,12 @@ class Organization {
 	/**
 	 * @param {string} name
 	 * @param {?Team} team
+	 * @returns {Team}
 	 */
 	appendContestant(name, team) {
 		const contestant = new Contestant(this.contestantList.length, name, team, this);
 		this.contestantList.push(contestant);
+		return contestant;
 	}
 
 	/**

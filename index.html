@@ -17,16 +17,21 @@
 		<div class="d-flex flex-row">
 			<a class="m-2" href="team.html">Ομάδες</a>
 			<a class="m-2" href="contestant.html">Διαγωνιζόμενοι</a>
+			<span class="m-2">|</span>
+			<a class="m-2" data-bs-toggle="modal" href="#create-form">Δημιουργία</a>
 			<a class="m-2" data-bs-toggle="modal" href="#import-form">Εισαγωγή</a>
 			<a class="m-2" data-bs-toggle="modal" href="#export-form">Εξαγωγή</a>
 		</div>
 		<hr class="m-2">
-		<div class="d-flex flex-row">
+		<div class="d-flex flex-row flex-wrap">
 			<a class="m-2 small" href="https://github.com/constracti/individual-championships" target="_blank">
 				<span>Έκδοση<span>
 				<span id="version"></span>
 			</a>
-			<a class="m-2 small" href="credits.html">Ευχαριστίες</a>
+			<span class="m-2 small">|</span>
+			<a class="m-2 small" href="https://github.com/constracti/individual-championships" target="_blank">@constracti</a>
+			<a class="m-2 small" href="https://getbootstrap.com/" target="_blank">Bootstrap</a>
+			<a class="m-2 small" href="https://www.flaticon.com/" target="_blank">Flaticon</a>
 		</div>
 		<form id="championship-insert-form" class="modal">
 			<div class="modal-dialog">
@@ -95,6 +100,49 @@
 					</div>
 					<div class="modal-footer d-flex flex-row justify-content-end p-2">
 						<button type="submit" class="btn btn-danger m-2">Διαγραφή</button>
+						<button type="button" class="btn btn-secondary m-2" data-bs-dismiss="modal">Άκυρο</button>
+					</div>
+				</div>
+			</div>
+		</form>
+		<form id="create-form" class="modal modal-lg">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header p-2">
+						<h5 class="modal-title m-2">Δημιουργία</h5>
+					</div>
+					<div class="modal-body d-flex flex-column p-2">
+						<div class="alert alert-info m-2 p-1" role="alert">
+							<p class="m-1">Συμπλήρωσε την περιγραφή ομάδων και διαγωνιζόμενων στο παρακάτω πεδίο και πάτησε υποβολή.</p>
+							<ul class="m-1">
+								<li>Οι γραμμές που ξεκινούν με τον χαρακτήρα "%" θεωρούνται σχόλια.</li>
+								<li>Επίσης, οι κενές γραμμές αγνοούνται πλήρως.</li>
+								<li>Οι ομάδες δηλώνονται με τον χαρακτήρα "#" στην αρχή της γραμμής.</li>
+							</ul>
+						</div>
+						<div class="m-2">
+							<textarea class="form-control" rows="6" style="resize: vertical;" disabled="disabled" readonly="readonly">διαγωνιζόμενος χωρίς ομάδα
+διαγωνιζόμενος χωρίς ομάδα
+% κτλ
+
+# 1η ομάδα
+διαγωνιζόμενος 1ης ομάδας
+διαγωνιζόμενος 1ης ομάδας
+διαγωνιζόμενος 1ης ομάδας
+% κτλ
+
+# 2η ομάδα
+διαγωνιζόμενος 2ης ομάδας
+% κτλ
+
+% κοκ με τις υπόλοιπες ομάδες</textarea>
+						</div>
+						<div class="m-2">
+							<textarea id="create-textarea" class="form-control" rows="6" style="resize: vertical;"></textarea>
+						</div>
+					</div>
+					<div class="modal-footer d-flex flex-row justify-content-end p-2">
+						<button type="submit" class="btn btn-danger m-2">Υποβολή</button>
 						<button type="button" class="btn btn-secondary m-2" data-bs-dismiss="modal">Άκυρο</button>
 					</div>
 				</div>
