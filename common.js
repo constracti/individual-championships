@@ -1,4 +1,4 @@
-const VERSION = '1.3.0';
+const VERSION = '1.4.0';
 
 
 /**
@@ -789,6 +789,15 @@ class Round {
 	/**
 	 * @returns {Game}
 	 */
+	prependGame() {
+		const game = new Game(this);
+		this.gameList.unshift(game);
+		return game;
+	}
+
+	/**
+	 * @returns {Game}
+	 */
 	appendGame() {
 		const game = new Game(this);
 		this.gameList.push(game);
@@ -913,6 +922,32 @@ class Unit {
 	setPass(pass) {
 		this.pass = pass;
 	}
+
+	moveUp() {
+		const entryList = [...this.round.gameList.entries()].filter(entry => {
+			let game = entry[1];
+			return game.unitList.includes(this);
+		});
+		if (entryList.length !== 1)
+			throw 'Unit::moveUp: not found';
+		const [index, src] = entryList[0];
+		const dst = index === 0 ? this.round.prependGame() : this.round.gameList[index - 1];
+		dst.appendUnit(this);
+		src.removeUnit(this);
+	}
+
+	moveDown() {
+		const entryList = [...this.round.gameList.entries()].filter(entry => {
+			let game = entry[1];
+			return game.unitList.includes(this);
+		});
+		if (entryList.length !== 1)
+			throw 'Unit::moveUp: not found';
+		const [index, src] = entryList[0];
+		const dst = index === this.round.gameList.length - 1 ? this.round.appendGame() : this.round.gameList[index + 1];
+		dst.appendUnit(this);
+		src.removeUnit(this);
+	}
 }
 
 
@@ -955,11 +990,28 @@ class Game {
 		return this.unitList.map(unit => unit.index);
 	}
 
+	delete() {
+		const index = this.round.gameList.indexOf(this);
+		this.round.gameList.splice(index, 1);
+	}
+
 	/**
 	 * @param {Unit} unit
 	 */
 	appendUnit(unit) {
 		this.unitList.push(unit);
+	}
+
+	/**
+	 * @param {Unit} unit
+	 */
+	removeUnit(unit) {
+		const index = this.unitList.indexOf(unit);
+		if (index < 0)
+			throw 'Game::removeUnit: invalid unit';
+		this.unitList.splice(index, 1);
+		if (this.unitList.length === 0)
+			this.delete();
 	}
 }
 

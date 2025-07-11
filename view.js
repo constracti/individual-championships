@@ -138,6 +138,29 @@ function refresh() {
 							content: contestant.getNameWithTeam(),
 						}),
 					]).flat(),
+					elem({
+						klass: 'm-1 border-start' + (unit.pass ? ' border-success-subtle' : ''),
+					}),
+					actionIcon({
+						icon: 'bi-arrow-up link-secondary',
+						click: () => {
+							organization = Organization.loadFromLocalStorage();
+							round = organization.getChampionship(round.championship.index).getLastRound();
+							round.getUnit(unit.index).moveUp();
+							organization.saveToLocalStorage();
+							refresh();
+						},
+					}),
+					actionIcon({
+						icon: 'bi-arrow-down link-secondary',
+						click: () => {
+							organization = Organization.loadFromLocalStorage();
+							round = organization.getChampionship(round.championship.index).getLastRound();
+							round.getUnit(unit.index).moveDown();
+							organization.saveToLocalStorage();
+							refresh();
+						},
+					}),
 				],
 			})),
 		}));
@@ -219,9 +242,9 @@ roundBackwardButton.addEventListener('click', event => {
 });
 
 roundDivideButton.addEventListener('click', event => {
-	// TODO game formation strategy (early fill tree, early fill games)
+	// TODO game formation strategy (fill tree, fill games)
 	// TODO create games with decreased capacity
-	// TODO add and move units in game state
+	// TODO add and delete units in game state
 	event.preventDefault();
 	organization = Organization.loadFromLocalStorage();
 	round = organization.getChampionship(round.championship.index).getLastRound();
@@ -248,7 +271,7 @@ roundDivideButton.addEventListener('click', event => {
 				return u2.prob - u1.prob; // sort by prob descending
 			return u1.seed - u2.seed; // sort by seed ascending
 		}).map(tuple => tuple.unit);
-		// early fill tree
+		// fill tree, assuming only one unit advances to the next round
 		const count = round.unitList.length;
 		const base = round.championship.gameCap;
 		const order = Math.ceil(Math.log(count) / Math.log(base));
