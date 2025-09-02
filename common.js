@@ -1,4 +1,4 @@
-const VERSION = '1.4.1';
+const VERSION = '1.4.2';
 
 
 /**
@@ -1181,4 +1181,4 @@ Array.from(document.getElementsByClassName('modal')).forEach(modal => {
 	});
 });
 
-const organization = Organization.loadFromLocalStorage();
+let organization = Organization.loadFromLocalStorage();
