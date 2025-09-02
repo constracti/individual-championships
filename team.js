@@ -40,7 +40,7 @@ function refresh() {
 							template: 'moveup',
 							enabled: !team.isFirst(),
 							click: () => {
-								organization = Organization.loadFromLocalStorage();
+								organization.compareWithLocalStorage();
 								organization.getTeam(team.index).moveUp();
 								organization.saveToLocalStorage();
 								refresh();
@@ -50,7 +50,7 @@ function refresh() {
 							template: 'movedown',
 							enabled: !team.isLast(),
 							click: () => {
-								organization = Organization.loadFromLocalStorage();
+								organization.compareWithLocalStorage();
 								organization.getTeam(team.index).moveDown();
 								organization.saveToLocalStorage();
 								refresh();
@@ -74,7 +74,7 @@ function refresh() {
 
 teamInsertForm.addEventListener('submit', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	organization.appendTeam(teamInsertName.value);
 	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(teamInsertForm);
@@ -85,7 +85,7 @@ teamInsertForm.addEventListener('submit', event => {
 
 teamUpdateForm.addEventListener('submit', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	organization.getTeam(teamUpdateIndex.value).update(teamUpdateName.value);
 	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(teamUpdateForm);
@@ -96,7 +96,7 @@ teamUpdateForm.addEventListener('submit', event => {
 
 teamDeleteForm.addEventListener('submit', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	organization.getTeam(teamDeleteIndex.value).delete();
 	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(teamDeleteForm);

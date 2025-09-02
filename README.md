@@ -14,6 +14,7 @@ Manage individual championships organizations.
  * @property {ChampionshipObj[]} championshipList
  * @property {?string} contestantGroupBy
  * @property {?string} contestantSortBy
+ * @property {number} timestamp
  * @property {?string} version
  */
 ```

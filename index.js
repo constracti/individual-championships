@@ -76,7 +76,7 @@ function refresh() {
 
 championshipInsertForm.addEventListener('submit', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	const championship = organization.appendChampionship(
 		championshipInsertName.value,
 		parseInt(championshipInsertUnitCap.value),
@@ -92,7 +92,7 @@ championshipInsertForm.addEventListener('submit', event => {
 
 championshipUpdateForm.addEventListener('submit', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	organization.getChampionship(championshipUpdateIndex.value).update(
 		championshipUpdateName.value,
 		parseInt(championshipUpdateUnitCap.value),
@@ -107,7 +107,7 @@ championshipUpdateForm.addEventListener('submit', event => {
 
 championshipDeleteForm.addEventListener('submit', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	organization.getChampionship(championshipDeleteIndex.value).delete();
 	organization.saveToLocalStorage();
 	const modal = bootstrap.Modal.getInstance(championshipDeleteForm);

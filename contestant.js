@@ -68,14 +68,14 @@ function refresh() {
 }
 
 contestantGroupBySelect.addEventListener('change', () => {
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	organization.setContestantGroupBy(contestantGroupBySelect.value);
 	organization.saveToLocalStorage();
 	refresh();
 });
 
 contestantSortBySelect.addEventListener('change', () => {
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	organization.setContestantSortBy(contestantSortBySelect.value);
 	organization.saveToLocalStorage();
 	refresh();
@@ -83,7 +83,7 @@ contestantSortBySelect.addEventListener('change', () => {
 
 contestantInsertForm.addEventListener('submit', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	const name = contestantInsertName.value;
 	const team = organization.getTeamOrNull(contestantInsertTeam.value);
 	organization.appendContestant(name, team);
@@ -96,7 +96,7 @@ contestantInsertForm.addEventListener('submit', event => {
 
 contestantUpdateForm.addEventListener('submit', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	const contestant = organization.getContestant(contestantUpdateIndex.value);
 	const name = contestantUpdateName.value;
 	const team = organization.getTeamOrNull(contestantUpdateTeam.value);
@@ -110,7 +110,7 @@ contestantUpdateForm.addEventListener('submit', event => {
 
 contestantDeleteForm.addEventListener('submit', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	const contestant = organization.getContestant(contestantDeleteIndex.value);
 	contestant.delete();
 	organization.saveToLocalStorage();

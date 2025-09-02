@@ -1,4 +1,4 @@
-const VERSION = '1.4.0';
+const VERSION = '1.4.1';
 
 
 /**
@@ -56,6 +56,11 @@ class Organization {
 	contestantSortBy = Organization.CONTESTANT_SORT_BY;
 
 	/**
+	 * @type {number}
+	 */
+	timestamp = 0;
+
+	/**
 	 * @type {string}
 	 */
 	version = VERSION;
@@ -71,6 +76,8 @@ class Organization {
 		obj.championshipList.forEach(championship => Championship.parse(championship, this));
 		this.setContestantGroupBy(obj.contestantGroupBy ?? Organization.CONTESTANT_GROUP_BY);
 		this.setContestantSortBy(obj.contestantSortBy ?? Organization.CONTESTANT_SORT_BY);
+		if (obj.timestamp)
+			this.timestamp = obj.timestamp;
 	}
 
 	/**
@@ -83,6 +90,7 @@ class Organization {
 			championshipList: this.championshipList.map(championship => championship.build()),
 			contestantGroupBy: this.contestantGroupBy,
 			contestantSortBy: this.contestantSortBy,
+			timestamp: this.timestamp,
 			version: this.version,
 		};
 	}
@@ -106,7 +114,6 @@ class Organization {
 				organization.appendContestant(line, team);
 			}
 		}
-		organization
 		return organization;
 	}
 
@@ -144,7 +151,18 @@ class Organization {
 	 * Save the Organization to the Local Storage.
 	 */
 	saveToLocalStorage() {
+		this.timestamp = Date.now();
 		localStorage.setItem(Organization.key, this.toJSON());
+	}
+
+	/**
+	 * Throw an error if the saved instance has changed.
+	 */
+	compareWithLocalStorage() {
+		const saved = Organization.loadFromLocalStorage();
+		if (saved.timestamp !== organization.timestamp) {
+			throw 'Organization::compareWithLocalStorage: structure has changed';
+		}
 	}
 
 	/**
@@ -1163,4 +1181,4 @@ Array.from(document.getElementsByClassName('modal')).forEach(modal => {
 	});
 });
 
-let organization = Organization.loadFromLocalStorage();
+const organization = Organization.loadFromLocalStorage();

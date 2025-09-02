@@ -87,7 +87,7 @@ function refresh() {
 					actionIcon({
 						template: 'delete',
 						click: () => {
-							organization = Organization.loadFromLocalStorage();
+							organization.compareWithLocalStorage();
 							round = organization.getChampionship(round.championship.index).getLastRound();
 							round.getUnit(unit.index).removeContestant(index);
 							organization.saveToLocalStorage();
@@ -122,7 +122,7 @@ function refresh() {
 					actionIcon({
 						icon: unit.pass ? 'bi-check-lg' : 'bi-x-lg',
 						click: () => {
-							organization = Organization.loadFromLocalStorage();
+							organization.compareWithLocalStorage();
 							round = organization.getChampionship(round.championship.index).getLastRound();
 							round.getUnit(unit.index).setPass(!unit.pass);
 							organization.saveToLocalStorage();
@@ -144,7 +144,7 @@ function refresh() {
 					actionIcon({
 						icon: 'bi-arrow-up link-secondary',
 						click: () => {
-							organization = Organization.loadFromLocalStorage();
+							organization.compareWithLocalStorage();
 							round = organization.getChampionship(round.championship.index).getLastRound();
 							round.getUnit(unit.index).moveUp();
 							organization.saveToLocalStorage();
@@ -154,7 +154,7 @@ function refresh() {
 					actionIcon({
 						icon: 'bi-arrow-down link-secondary',
 						click: () => {
-							organization = Organization.loadFromLocalStorage();
+							organization.compareWithLocalStorage();
 							round = organization.getChampionship(round.championship.index).getLastRound();
 							round.getUnit(unit.index).moveDown();
 							organization.saveToLocalStorage();
@@ -219,7 +219,7 @@ contestantInsertTeam.addEventListener('change', refreshContestantInsertSelect);
 
 contestantInsertForm.addEventListener('submit', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	round = organization.getChampionship(round.championship.index).getLastRound();
 	const contestant = organization.getContestant(contestantInsertSelect.value);
 	const unit = round.getUnitOrNull(contestantInsertUnit.value) ?? round.appendUnit(null);
@@ -233,7 +233,7 @@ contestantInsertForm.addEventListener('submit', event => {
 
 roundBackwardButton.addEventListener('click', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	round = organization.getChampionship(round.championship.index).getLastRound();
 	round.delete();
 	round = round.getPrevious();
@@ -246,7 +246,7 @@ roundDivideButton.addEventListener('click', event => {
 	// TODO create games with decreased capacity
 	// TODO add and delete units in game state
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	round = organization.getChampionship(round.championship.index).getLastRound();
 	if (round.championship.gameCap > 1) {
 		// fairly select lucky units
@@ -311,7 +311,7 @@ roundDivideButton.addEventListener('click', event => {
 
 roundUniteButton.addEventListener('click', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	round = organization.getChampionship(round.championship.index).getLastRound();
 	round.gameList = [];
 	round.unitList.forEach(unit => unit.setPass(false));
@@ -321,7 +321,7 @@ roundUniteButton.addEventListener('click', event => {
 
 roundForwardButton.addEventListener('click', event => {
 	event.preventDefault();
-	organization = Organization.loadFromLocalStorage();
+	organization.compareWithLocalStorage();
 	round = organization.getChampionship(round.championship.index).appendRound();
 	round.getPrevious().unitList.forEach(unit => {
 		if (!unit.pass)
