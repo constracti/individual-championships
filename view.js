@@ -11,7 +11,9 @@ const contestantInsertTeam = document.getElementById('contestant-insert-team');
 const contestantInsertSelect = document.getElementById('contestant-insert-select');
 
 const roundBackwardButton = document.getElementById('round-backward-button');
+const roundDivideGroup = document.getElementById('round-divide-group');
 const roundDivideButton = document.getElementById('round-divide-button');
+const roundFillButton = document.getElementById('round-fill-button');
 const roundPrintButton = document.getElementById('round-print-button');
 const roundUniteButton = document.getElementById('round-unite-button');
 const roundForwardButton = document.getElementById('round-forward-button');
@@ -31,6 +33,17 @@ function nodeShowOn(node, condition) {
 		node.classList.add('d-none');
 }
 
+/**
+ * @param {HTMLElement} node
+ * @param {boolean} condition
+ */
+function nodeEnableOn(node, condition) {
+	if (condition)
+		node.classList.remove('disabled');
+	else
+		node.classList.add('disabled');
+}
+
 function refresh() {
 
 	document.title = [round.championship.name, textDict.siteName].join(textDict.separator);
@@ -45,7 +58,8 @@ function refresh() {
 	refreshContestantInsertSelect();
 
 	nodeShowOn(roundBackwardButton, round.gameList.length === 0 && !round.isFirst());
-	nodeShowOn(roundDivideButton, round.gameList.length === 0 && round.unitList.length > 1);
+	nodeShowOn(roundDivideGroup, round.gameList.length === 0 && round.unitList.length > 1);
+	nodeEnableOn(roundFillButton, round.gameList.length === 0 && round.unitList.length > 1 && round.championship.gameCap > 1);
 
 	nodeShowOn(roundPrintButton, round.gameList.length !== 0);
 	nodeShowOn(roundUniteButton, round.gameList.length !== 0);
@@ -241,69 +255,94 @@ roundBackwardButton.addEventListener('click', event => {
 	refresh();
 });
 
+// TODO add and delete units in game state
+// TODO create games with decreased capacity
+
 roundDivideButton.addEventListener('click', event => {
-	// TODO game formation strategy (fill tree, fill games)
-	// TODO create games with decreased capacity
-	// TODO add and delete units in game state
 	event.preventDefault();
 	organization.compareWithLocalStorage();
 	round = organization.getChampionship(round.championship.index).getLastRound();
-	if (round.championship.gameCap > 1) {
-		// fairly select lucky units
-		const unitList = [...round.unitList].map(unit => {
-			const root = unit;
-			let prob = 1.0;
-			while (unit.parent !== null) {
-				unit = unit.parent;
-				unit.round.gameList.forEach(game => {
-					if (!game.unitList.includes(unit))
-						return;
-					prob *= game.unitList.filter(unit => unit.pass).length / game.unitList.length;
-				});
-			}
-			return {
-				unit: root,
-				prob: Math.log(prob),
-				seed: Math.random(),
-			};
-		}).sort((u1, u2) => {
-			if (u1.prob !== u2.prob)
-				return u2.prob - u1.prob; // sort by prob descending
-			return u1.seed - u2.seed; // sort by seed ascending
-		}).map(tuple => tuple.unit);
-		// fill tree, assuming only one unit advances to the next round
-		const count = round.unitList.length;
-		const base = round.championship.gameCap;
-		const order = Math.ceil(Math.log(count) / Math.log(base));
-		const power = Math.pow(base, order);
-		const lucky = Math.floor((power - count) / (base - 1));
-		const full = Math.floor((count - lucky) / base) * base;
-		let game = null;
-		for (let unit of shuffle(unitList.slice(0, full))) {
-			if (game === null)
-				game = round.appendGame();
-			game.appendUnit(unit);
-			if (game.unitList.length === base)
-				game = null;
-		}
-		for (let unit of shuffle(unitList.slice(full, count - lucky))) {
-			if (game === null)
-				game = round.appendGame();
-			game.appendUnit(unit);
-			if (game.unitList.length === base)
-				game = null;
-		}
-		for (let unit of unitList.slice(count - lucky)) {
+	// fairly select lucky units
+	const probList = round.getProbList();
+	const unitList = round.unitList.map((unit, i) => {
+		return {
+			unit: unit,
+			prob: Math.log(probList[i]),
+			seed: Math.random(),
+		};
+	}).sort((u1, u2) => {
+		if (u1.prob !== u2.prob)
+			return u2.prob - u1.prob; // sort by prob descending
+		return u1.seed - u2.seed; // sort by seed ascending
+	}).map(tuple => tuple.unit);
+	// fill games
+	const count = round.unitList.length;
+	const base = round.championship.gameCap;
+	const full = Math.floor(count / base) * base;
+	const lucky = count - full;
+	let game = null;
+	for (let unit of shuffle(unitList.slice(0, full))) {
+		if (game === null)
 			game = round.appendGame();
-			game.appendUnit(unit);
-			unit.setPass(true);
+		game.appendUnit(unit);
+		if (game.unitList.length === base)
 			game = null;
-		}
-	} else {
-		shuffle(round.unitList).forEach(unit => {
-			const game = round.appendGame();
-			game.appendUnit(unit);
-		});
+	}
+	for (let unit of shuffle(unitList.slice(full))) {
+		if (game === null)
+			game = round.appendGame();
+		game.appendUnit(unit);
+		if (game.unitList.length === base)
+			game = null;
+	}
+	organization.saveToLocalStorage();
+	refresh();
+});
+
+roundFillButton.addEventListener('click', event => {
+	event.preventDefault();
+	organization.compareWithLocalStorage();
+	round = organization.getChampionship(round.championship.index).getLastRound();
+	// fairly select lucky units
+	const probList = round.getProbList();
+	const unitList = round.unitList.map((unit, i) => {
+		return {
+			unit: unit,
+			prob: Math.log(probList[i]),
+			seed: Math.random(),
+		};
+	}).sort((u1, u2) => {
+		if (u1.prob !== u2.prob)
+			return u2.prob - u1.prob; // sort by prob descending
+		return u1.seed - u2.seed; // sort by seed ascending
+	}).map(tuple => tuple.unit);
+	// fill tree, assuming only one unit advances to the next round
+	const count = round.unitList.length;
+	const base = round.championship.gameCap;
+	const order = Math.ceil(Math.log(count) / Math.log(base));
+	const power = Math.pow(base, order);
+	const lucky = Math.floor((power - count) / (base - 1));
+	const full = Math.floor((count - lucky) / base) * base;
+	let game = null;
+	for (let unit of shuffle(unitList.slice(0, full))) {
+		if (game === null)
+			game = round.appendGame();
+		game.appendUnit(unit);
+		if (game.unitList.length === base)
+			game = null;
+	}
+	for (let unit of shuffle(unitList.slice(full, count - lucky))) {
+		if (game === null)
+			game = round.appendGame();
+		game.appendUnit(unit);
+		if (game.unitList.length === base)
+			game = null;
+	}
+	for (let unit of unitList.slice(count - lucky)) {
+		game = round.appendGame();
+		game.appendUnit(unit);
+		unit.setPass(true);
+		game = null;
 	}
 	organization.saveToLocalStorage();
 	refresh();

@@ -1,4 +1,4 @@
-const VERSION = '1.4.2';
+const VERSION = '1.5.0';
 
 
 /**
@@ -820,6 +820,28 @@ class Round {
 		const game = new Game(this);
 		this.gameList.push(game);
 		return game;
+	}
+
+	/**
+	 * For each unit, calculate the probability at which
+	 * it would have qualified for the current round
+	 * if it was randomly selected in every previous game.
+	 * @returns {number[]}
+	 */
+	getProbList() {
+		return this.unitList.map(unit => {
+			const root = unit;
+			let prob = 1.0;
+			while (unit.parent !== null) {
+				unit = unit.parent;
+				unit.round.gameList.forEach(game => {
+					if (!game.unitList.includes(unit))
+						return;
+					prob *= game.unitList.filter(unit => unit.pass).length / game.unitList.length;
+				});
+			}
+			return prob;
+		});
 	}
 }
 
