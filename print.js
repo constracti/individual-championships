@@ -3,11 +3,15 @@ const params = new URLSearchParams(window.location.search);
 let round = organization.getChampionship(params.get('championship')).getLastRound();
 
 const championshipName = document.getElementById('championship-name');
+const championshipInfo = document.getElementById('championship-info');
 const roundTitle = document.getElementById('round-title');
 const roundGameList = document.getElementById('round-game-list');
 
 document.title = [round.championship.name, textDict.siteName].join(textDict.separator);
 championshipName.innerHTML = round.championship.name;
+championshipInfo.innerHTML = round.championship.info;
+if (round.championship.info.length)
+	championshipInfo.classList.remove('d-none');
 roundTitle.innerHTML = round.getTitle();
 
 round.gameList.forEach(game => {

@@ -2,12 +2,14 @@ const championshipList = document.getElementById('championship-list');
 
 const championshipInsertForm = document.getElementById('championship-insert-form');
 const championshipInsertName = document.getElementById('championship-insert-name');
+const championshipInsertInfo = document.getElementById('championship-insert-info');
 const championshipInsertUnitCap = document.getElementById('championship-insert-unit-cap');
 const championshipInsertGameCap = document.getElementById('championship-insert-game-cap');
 
 const championshipUpdateForm = document.getElementById('championship-update-form');
 const championshipUpdateIndex = document.getElementById('championship-update-index');
 const championshipUpdateName = document.getElementById('championship-update-name');
+const championshipUpdateInfo = document.getElementById('championship-update-info');
 const championshipUpdateUnitCap = document.getElementById('championship-update-unit-cap');
 const championshipUpdateGameCap = document.getElementById('championship-update-game-cap');
 
@@ -38,10 +40,20 @@ function refresh() {
 			klass: 'list-group-item d-flex flex-row justify-content-between p-1',
 			content: [
 				elem({
-					tag: 'a',
-					klass: 'm-1',
-					href: `view.html?championship=${championship.index}`,
-					content: championship.name,
+					klass: 'd-flex flex-row align-items-baseline',
+					content: [
+						elem({
+							tag: 'a',
+							klass: 'm-1',
+							href: `view.html?championship=${championship.index}`,
+							content: championship.name,
+						}),
+						championship.info.length ? elem({
+							tag: 'small',
+							klass: 'm-1 fst-italic',
+							content: championship.info,
+						}) : null,
+					],
 				}),
 				elem({
 					klass: 'd-flex flex-row',
@@ -52,6 +64,7 @@ function refresh() {
 								const modal = bootstrap.Modal.getOrCreateInstance(championshipUpdateForm);
 								championshipUpdateIndex.value = championship.index;
 								championshipUpdateName.value = championship.name;
+								championshipUpdateInfo.value = championship.info;
 								championshipUpdateUnitCap.value = championship.unitCap;
 								championshipUpdateGameCap.value = championship.gameCap;
 								modal.show();
@@ -79,6 +92,7 @@ championshipInsertForm.addEventListener('submit', event => {
 	organization.compareWithLocalStorage();
 	const championship = organization.appendChampionship(
 		championshipInsertName.value,
+		championshipInsertInfo.value,
 		parseInt(championshipInsertUnitCap.value),
 		parseInt(championshipInsertGameCap.value),
 	);
@@ -95,6 +109,7 @@ championshipUpdateForm.addEventListener('submit', event => {
 	organization.compareWithLocalStorage();
 	organization.getChampionship(championshipUpdateIndex.value).update(
 		championshipUpdateName.value,
+		championshipUpdateInfo.value,
 		parseInt(championshipUpdateUnitCap.value),
 		parseInt(championshipUpdateGameCap.value),
 	);

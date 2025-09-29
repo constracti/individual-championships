@@ -299,13 +299,14 @@ class Organization {
 
 	/**
 	 * @param {string} name
+	 * @param {string} info
 	 * @param {number} unitCap
 	 * @param {number} gameCap
 	 * @returns {Championship}
 	 */
-	appendChampionship(name, unitCap, gameCap) {
+	appendChampionship(name, info, unitCap, gameCap) {
 		const championship = new Championship(
-			this.championshipList.length, name, unitCap, gameCap, this
+			this.championshipList.length, name, info, unitCap, gameCap, this
 		);
 		this.championshipList.push(championship);
 		return championship;
@@ -543,6 +544,7 @@ class Contestant {
 /**
  * @typedef {Object} ChampionshipObj
  * @property {string} name
+ * @property {?string} info
  * @property {number} unitCap
  * @property {number} gameCap
  * @property {RoundObj[]} roundList
@@ -559,6 +561,11 @@ class Championship {
 	 * @type {string}
 	 */
 	name;
+
+	/**
+	 * @type {string}
+	 */
+	info;
 
 	/**
 	 * @type {number}
@@ -583,13 +590,15 @@ class Championship {
 	/**
 	 * @param {number} index
 	 * @param {string} name
+	 * @param {string} info
 	 * @param {number} unitCap
 	 * @param {number} gameCap
 	 * @param {Organization} organization
 	 */
-	constructor(index, name, unitCap, gameCap, organization) {
+	constructor(index, name, info, unitCap, gameCap, organization) {
 		this.index = index;
 		this.name = name;
+		this.info = info;
 		this.unitCap = unitCap;
 		this.gameCap = gameCap;
 		this.organization = organization;
@@ -600,7 +609,7 @@ class Championship {
 	 * @param {Organization} organization
 	 */
 	static parse(obj, organization) {
-		const championship = organization.appendChampionship(obj.name, obj.unitCap, obj.gameCap);
+		const championship = organization.appendChampionship(obj.name, obj.info ?? '', obj.unitCap, obj.gameCap);
 		obj.roundList.forEach(round => Round.parse(round, championship));
 	}
 
@@ -610,6 +619,7 @@ class Championship {
 	build() {
 		return {
 			name: this.name,
+			info: this.info,
 			unitCap: this.unitCap,
 			gameCap: this.gameCap,
 			roundList: this.roundList.map(round => round.build()),
@@ -618,11 +628,13 @@ class Championship {
 
 	/**
 	 * @param {string} name
+	 * @param {string} info
 	 * @param {number} unitCap
 	 * @param {number} gameCap
 	 */
-	update(name, unitCap, gameCap) {
+	update(name, info, unitCap, gameCap) {
 		this.name = name;
+		this.info = info;
 		this.unitCap = unitCap;
 		this.gameCap = gameCap;
 	}
@@ -1063,7 +1075,7 @@ class Game {
  * @param {?string} args.value
  * @param {?string} args.href
  * @param {?{(): void}} args.click
- * @param {?(string|(HTMLElement)[])} args.content
+ * @param {?(string|(?HTMLElement)[])} args.content
  * @returns {HTMLElement}
  */
 function elem(args) {
@@ -1098,7 +1110,8 @@ function elem(args) {
 		node.innerHTML = args.content;
 	else
 		for (let child of args.content)
-			node.appendChild(child);
+			if (child !== null)
+				node.appendChild(child);
 	return node;
 }
 
