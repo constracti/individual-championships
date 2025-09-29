@@ -3,6 +3,7 @@ const params = new URLSearchParams(window.location.search);
 let round = organization.getChampionship(params.get('championship')).getLastRound();
 
 const championshipName = document.getElementById('championship-name');
+const championshipInfo = document.getElementById('championship-info');
 const roundTitle = document.getElementById('round-title');
 
 const contestantInsertForm = document.getElementById('contestant-insert-form');
@@ -48,6 +49,8 @@ function refresh() {
 
 	document.title = [round.championship.name, textDict.siteName].join(textDict.separator);
 	championshipName.innerHTML = round.championship.name;
+	championshipInfo.innerHTML = round.championship.info;
+	nodeShowOn(championshipInfo, round.championship.info.length)
 	roundTitle.innerHTML = round.getTitle();
 
 	contestantInsertTeam.innerHTML = '';

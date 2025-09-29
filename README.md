@@ -46,6 +46,7 @@ Manage individual championships organizations.
 /**
  * @typedef {Object} ChampionshipObj
  * @property {string} name
+ * @property {string} info
  * @property {number} unitCap
  * @property {number} gameCap
  * @property {RoundObj[]} roundList
