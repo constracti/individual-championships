@@ -7,7 +7,7 @@ const championshipInfo = document.getElementById('championship-info');
 const roundTitle = document.getElementById('round-title');
 const roundGameList = document.getElementById('round-game-list');
 
-document.title = [round.championship.name, textDict.siteName].join(textDict.separator);
+document.title = [round.championship.name, (round.index + 1).toFixed()].join(' ');
 championshipName.innerHTML = round.championship.name;
 championshipInfo.innerHTML = round.championship.info;
 if (round.championship.info.length)
